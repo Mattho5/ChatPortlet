@@ -9,14 +9,14 @@
 	<!-- <h:head /> and <h:body> in the following are always needed otherwise JSF Facelets won't work -->
 	<h:head />
 
-	<h:body >
-	<h:outputStylesheet library="css" name="screen.css" />
+	<h:body>
+		<h:outputStylesheet library="css" name="screen.css" />
 
-	
+
 
 		<rich:panel id="wrapper" styleClass="wrapper">
-		
-		<!-- =======================
+
+			<!-- =======================
 				LOGIN PANEL           
 		======================= -->
 			<rich:panel header="Login " id="loginpanel" styleClass="loginPanel"
@@ -25,50 +25,64 @@
 					<table>
 						<tr>
 							<td><h:outputLabel value="Login" /></td>
-							<td><h:inputText id="login" value="#{chatController.username}" /></td>
+							<td><h:inputText id="login"
+									value="#{chatController.username}" /></td>
 						</tr>
 						<tr>
-							<td><h:outputLabel value="Password" for="pass"  /></td>
-							<td><h:inputSecret id="pass" value="#{chatController.password}"/></td>
+							<td><h:outputLabel value="Password" for="pass" /></td>
+							<td><h:inputSecret id="pass"
+									value="#{chatController.password}" /></td>
 						</tr>
 						<tr>
 							<td><h:outputLabel value="Protocol" for="select" /></td>
-							<td><rich:select  id="select" value="#{chatController.toSelect}" >
-							<a4j:ajax event="change" onerror="handleAjaxError"
-									render="loginpanel" />
-									
-									<f:selectItems value="#{chatController.selectedConf}" />
-									
+							<td><rich:select id="select"
+									value="#{chatController.selectedProtocol}">
+									<a4j:ajax event="change" onerror="handleAjaxError"
+										render="loginpanel" />
+
+									<f:selectItems value="#{chatController.protocols}" />
+
 								</rich:select></td>
 						</tr>
 						<tr>
-							<td><h:outputLabel value="Server" for="server" rendered="#{chatController.toSelect== 'NONE'}" /></td>
-							<td><h:inputText id="server" value="#{chatController.server}" rendered="#{chatController.toSelect== 'NONE'}"/></td>
-							</tr>
-							<tr>
-							<td><h:outputLabel value="Domain"  rendered="#{chatController.toSelect== 'NONE'}"/></td>
-							<td><h:inputText id="domain" value="#{chatController.service}" rendered="#{chatController.toSelect== 'NONE'}"/></td>
+							<td><h:outputLabel value="Server" for="server"
+									rendered="#{chatController.selectedProtocol== 'NONE'}" /></td>
+							<td><h:inputText id="server"
+									value="#{chatController.server}"
+									rendered="#{chatController.selectedProtocol== 'NONE'}" /></td>
 						</tr>
-							<tr> 
+						<tr>
+							<td><h:outputLabel value="Domain"
+									rendered="#{chatController.selectedProtocol== 'NONE'}" /></td>
+							<td><h:inputText id="domain"
+									value="#{chatController.service}"
+									rendered="#{chatController.selectedProtocol== 'NONE'}" /></td>
+						</tr>
+						<tr>
+							<td><h:selectBooleanCheckbox
+									value="#{chatController.saveAccount}" title="Save account"
+									label="Save account" /></td>
 							<td><h:commandButton value="connect"
-									action="#{chatController.connect()}" type="submit" /><h:commandButton value="connectfromPref"
+									action="#{chatController.connect()}" type="submit" /> <h:commandButton
+									value="connectfromPref"
 									action="#{chatController.initFromPreferences()}" type="submit" /></td>
 						</tr>
 					</table>
 				</h:form>
 
 			</rich:panel>
-		<!--=======================
+			<!--=======================
 				         
 		 =======================  -->
 			<rich:panel id="impanel" styleClass="impanel"
 				rendered="#{chatController.connected == true}">
-				<span class="title">Instant <h:outputText value="Messenger" style="color: #99CC00" /></span>
+				<span class="title">Instant <h:outputText value="Messenger"
+						style="color: #99CC00" /></span>
 
 				<h:panelGrid id="window" columns="2"
 					style="width: 100%; overflow: auto;">
 					<h:form id="conv">
-					<a4j:push
+						<a4j:push
 							address="#{chatController.userIdentifier}conversations@imService"
 							onerror="alert(event.rf.data)">
 							<a4j:ajax event="dataavailable" render="conversations" />
@@ -78,119 +92,130 @@
 							onerror="alert(event.rf.data)">
 							<a4j:ajax event="dataavailable" render="messageList" />
 						</a4j:push>
-						
-<!-- =======================
+
+						<!-- =======================
 				Conversations panel        
  ======================= -->
-						<rich:panel id="messages" 
-							rendered="#{chatController.connected == true}" style=" width: 100%; background-color:white;border:none" >
-						<a4j:outputPanel id="conversations" title="messages"
-						
-							style=" width: 100%; overflow: auto;  border: none; background-color:white;">
-							<rich:tabPanel  switchType="ajax" 
-							  activeItem="#{chatController.actualTab}"
-								rendered="#{chatController.conversations.size()>0}" style="background-color:white;  border: none"  >
-								<a4j:ajax event="itemchange" onerror="handleAjaxError"
-									render="messageList, messageinput" />
-								<a4j:repeat value="#{chatController.conversations}" var="conver"
-									varStatus="status">
-									<rich:tab name="#{conver.idName}"   style="  border: none">
-										<f:facet name="header" >
+						<rich:panel id="messages"
+							rendered="#{chatController.connected == true}"
+							style=" width: 100%; background-color:white;border:none">
+							<a4j:outputPanel id="conversations" title="messages"
+								style=" width: 100%; overflow: auto;  border: none; background-color:white;">
+								<rich:tabPanel switchType="ajax"
+									activeItem="#{chatController.actualTab}"
+									rendered="#{chatController.conversations.size()>0}"
+									style="background-color:white;  border: none">
+									<a4j:ajax event="itemchange" onerror="handleAjaxError"
+										render="messageList, messageinput" />
+									<a4j:repeat value="#{chatController.conversations}"
+										var="conver" varStatus="status">
+										<rich:tab name="#{conver.idName}" style="  border: none">
+											<f:facet name="header">
 
-											<h:panelGrid columns="2">
-												<h:outputLabel value="#{chatController.subString(15,conver.name)}  " rendered="#{!conver.hasUnreadedMessage}">
-												</h:outputLabel>
-													<h:outputLabel value="#{chatController.subString(15,conver.name)}  " rendered="#{conver.hasUnreadedMessage}" styleClass="newMessage">
-												</h:outputLabel>
-												<h:graphicImage value="state/close.png"
-													onclick="exitConversation('#{conver.idName}'); Event.stop(event);" />
-											</h:panelGrid>
-										</f:facet>
-										<table>
-										<tr>
-										<td>
-										<h:outputText value="Name : #{conver.name}" />	
-										</td>
-										<td>										
-												<h:outputText value="ID : #{conver.idName}" />
-										</td>
-										</tr>
-										<tr><td>
-											<h:outputText value="STATE : #{conver.state}" />
-											</td>
-											<td>	
-												<h:outputText value="STATUS : #{conver.status}" />
-												</td>
-										</tr>
-										</table>
+												<h:panelGrid columns="2">
+													<h:outputLabel
+														value="#{chatController.subString(15,conver.name)}  "
+														rendered="#{!conver.hasUnreadedMessage}">
+													</h:outputLabel>
+													<h:outputLabel
+														value="#{chatController.subString(15,conver.name)}  "
+														rendered="#{conver.hasUnreadedMessage}"
+														styleClass="newMessage">
+													</h:outputLabel>
+													<h:graphicImage value="state/close.png"
+														onclick="exitConversation('#{conver.idName}'); Event.stop(event);" />
+												</h:panelGrid>
+											</f:facet>
+											<table>
+												<tr>
+													<td><h:outputText value="Name : #{conver.name}" /></td>
+													<td><h:outputText value="ID : #{conver.idName}" /></td>
+												</tr>
+												<tr>
+													<td><h:outputText value="STATE : #{conver.state}" />
+													</td>
+													<td><h:outputText value="STATUS : #{conver.status}" />
+													</td>
+												</tr>
+											</table>
 
-										<h:outputText value="#{conver.status}" />
-									</rich:tab>
-								</a4j:repeat>
-							</rich:tabPanel>
-						</a4j:outputPanel>
+											<h:outputText value="#{conver.status}" />
+										</rich:tab>
+									</a4j:repeat>
+								</rich:tabPanel>
+							</a4j:outputPanel>
 
-						<rich:panel rendered="#{chatController.conversations.size()>0}" style="background-color:white; border:none ">
-							<a4j:outputPanel id="messageList"
-								>
-								<script>
+							<rich:panel rendered="#{chatController.conversations.size()>0}"
+								style="background-color:white; border:none ">
+								<a4j:outputPanel id="messageList">
+									<script>
 												var objDiv = document.getElementById("conversation_scroll");
 												objDiv.scrollTop = objDiv.scrollHeight;
 												</script>
-								<div id="conversation_scroll" class="conversation" 
-									>
-									<div style="padding: 10px;">
-									<table>
-									<a4j:repeat
-										value="#{chatController.currentContact.messagesHistory}"
-										var="message">
-										<tr style="padding: 5px;"><td>
-										<div style="width:100%">
-										<a4j:outputPanel styleClass="concreteMessage" rendered="#{message.from=='Me'}" style="float:left">
-										<h:outputText value="#{message.time} #{message.from}: "
-											style="color: blue; float:left"  /><br />
-											<h:outputText escape="false" value="#{chatController.escapeString(message.message)}"
-											style="font-size: 105%" />
-										</a4j:outputPanel>
-									
-										<a4j:outputPanel rendered="#{message.from!='Me'}" styleClass="concreteMessage" style="float:right">
-										<h:outputText value="#{message.time} #{message.from}}: "
-											style="color: green;  "  /><br />
-											<h:outputText escape="false" value="#{chatController.escapeString(message.message)}"
-											style="font-size: 105%" />
-										
-										</a4j:outputPanel>
-											</div>
-										
-										</td></tr>
-									</a4j:repeat>
-									</table>
-								</div>
-								</div>
-							</a4j:outputPanel>
-						
-						
-						
-						<a4j:outputPanel id="messageinput">
-						<h:inputTextarea 
-									value="#{chatController.currentContact.actualMessage}"
-									style="width: 100%; border: #D8D8D8  1px solid; border-radius: 8px;" rows="3">
-									<rich:focus ></rich:focus>
-						</h:inputTextarea>
+									<div id="conversation_scroll" class="conversation">
+										<div style="padding: 10px;">
+											<table>
+												<a4j:repeat
+													value="#{chatController.currentContact.messagesHistory}"
+													var="message">
+													<tr style="padding: 5px;">
+														<td>
+															<div style="width: 100%">
+																<a4j:outputPanel styleClass="concreteMessage"
+																	rendered="#{message.from=='Me'}" style="float:left">
+																	<h:outputText value="#{message.time} #{message.from}: "
+																		style="color: blue; float:left" />
+																	<br />
+																	<h:outputText escape="false"
+																		value="#{chatController.escapeString(message.message)}"
+																		style="font-size: 105%" />
+																</a4j:outputPanel>
 
-								<rich:hotKey key="return"
-									onkeydown="#{rich:element('sendButton')}.click()"
-									enabledInInput="true" />
-								
-								
+																<a4j:outputPanel rendered="#{message.from!='Me'}"
+																	styleClass="concreteMessage" style="float:right">
+																	<h:outputText
+																		value="#{message.time} #{message.from}}: "
+																		style="color: green;  " />
+																	<br />
+																	<h:outputText escape="false"
+																		value="#{chatController.escapeString(message.message)}"
+																		style="font-size: 105%" />
+
+																</a4j:outputPanel>
+															</div>
+
+														</td>
+													</tr>
+												</a4j:repeat>
+											</table>
+										</div>
+									</div>
+								</a4j:outputPanel>
+
+
+
+								<a4j:outputPanel id="messageinput">
+									<h:inputTextarea
+										value="#{chatController.currentContact.actualMessage}"
+										style="width: 100%; border: #D8D8D8  1px solid; border-radius: 8px;"
+										rows="3">
+										<rich:focus></rich:focus>
+									</h:inputTextarea>
+
+									<rich:hotKey key="return"
+										onkeydown="#{rich:element('sendButton')}.click()"
+										enabledInInput="true" />
+
+
 								</a4j:outputPanel>
 								<a4j:commandButton id="sendButton" value="send"
-									action="#{chatController.currentContact.sendMessage()}" render="messageinput"/>
-								
+									action="#{chatController.currentContact.sendMessage()}"
+									render="messageinput" />
+
 								<a4j:commandButton value="refresh" render="messageList" />
-								</rich:panel>
+							</rich:panel>
 						</rich:panel>
-						
+
 
 					</h:form>
 					<h:form>
@@ -200,150 +225,173 @@
 							<a4j:ajax event="dataavailable" render="contacts" />
 						</a4j:push>
 						<rich:panel id="contact_wrapper" styleClass="contactWrapper">
-						<rich:panel id="output" styleClass="contacts"
-							rendered="#{chatController.connected == true}">
+							<rich:panel id="output" styleClass="contacts"
+								rendered="#{chatController.connected == true}">
 
-							<rich:panelMenu id="contacts" mode="ajax">
+								<rich:panelMenu id="contacts" mode="ajax">
 
-								<a4j:repeat value="#{chatController.contacts}" var="contact">
-									<rich:panelMenuItem
-										action="#{chatController.newConversation(contact)}"
-										rendered="#{contact.online}" styleClass="contact"
-										render="messages">
-										<div class="contactDiv">
-											<h:graphicImage value="state/available.png"
-												rendered="#{contact.state=='AVAILABLE' || contact.state == null}"
-												style="float:left; " />
+									<a4j:repeat value="#{chatController.contacts}" var="contact">
+										<rich:panelMenuItem
+											action="#{chatController.newConversation(contact)}"
+											rendered="#{contact.online}" styleClass="contact"
+											render="messages">
+											<div class="contactDiv">
+												<h:graphicImage value="state/available.png"
+													rendered="#{contact.state=='AVAILABLE' || contact.state == null}"
+													style="float:left; " />
 
-											<h:graphicImage value="state/away.png"
-												rendered="#{contact.state=='AWAY'}" style="float:left " />
-											<h:graphicImage value="state/dnd.png"
-												rendered="#{contact.state=='DND'}" style="float:left " />
+												<h:graphicImage value="state/away.png"
+													rendered="#{contact.state=='AWAY'}" style="float:left " />
+												<h:graphicImage value="state/dnd.png"
+													rendered="#{contact.state=='DND'}" style="float:left " />
 
-											<h:outputText
-												value="#{( contact.name == null ) ? chatController.subString(20,contact.idName) : chatController.subString(15,contact.name)} "
-												style="font-size: 110% ; font-style: normal; text-align:center" />
-											<br />
-											<h:outputText
-												value="(#{contact.status == null ? chatController.subString(20,contact.idName): chatController.subString(20,contact.status) })"
-												style="font-size: 92% ; font-style: normal; text-align:left" />
-
-											<rich:tooltip followMouse="true" showDelay="500"
-												style="border-radius: 5px;">
-												<h:outputText value="NAME : #{contact.name}" />
+												<h:outputText
+													value="#{( contact.name == null ) ? chatController.subString(20,contact.idName) : chatController.subString(15,contact.name)} "
+													style="font-size: 110% ; font-style: normal; text-align:center" />
 												<br />
-												<h:outputText value="ID : #{contact.idName}" />
-												<br />
-												<h:outputText value="STATE : #{contact.state}" />
-												<br />
-												<h:outputText value="STATUS : #{contact.status}" />
-												<br />
-											</rich:tooltip>
-										</div>
+												<h:outputText
+													value="(#{contact.status == null ? chatController.subString(20,contact.idName): chatController.subString(20,contact.status) })"
+													style="font-size: 92% ; font-style: normal; text-align:left" />
 
-									</rich:panelMenuItem>
+												<rich:tooltip followMouse="true" showDelay="500"
+													style="border-radius: 5px;">
+													<h:outputText value="NAME : #{contact.name}" />
+													<br />
+													<h:outputText value="ID : #{contact.idName}" />
+													<br />
+													<h:outputText value="STATE : #{contact.state}" />
+													<br />
+													<h:outputText value="STATUS : #{contact.status}" />
+													<br />
+												</rich:tooltip>
+											</div>
 
-								</a4j:repeat>
+										</rich:panelMenuItem>
 
-							</rich:panelMenu>
+									</a4j:repeat>
+
+								</rich:panelMenu>
 							</rich:panel>
-							
+
 							<h:commandButton id="disconnect" value="disconnect"
-					action="#{chatController.disconnect()}"
-					rendered="#{chatController.connected == true}" type="submit" /> <h:commandButton value="Add">
-        <rich:componentControl target="popup" operation="show" />
-    </h:commandButton>
-    	<a4j:outputPanel id="pushState">
-			<h:outputText  style="font-weight: bold; color: RED;" value="ERR" rendered="#{!chatController.pushWorking}" />
-			<h:outputText  style="font-weight: bold; color: green;" value="OK" rendered="#{chatController.pushWorking}" />
-			</a4j:outputPanel>
+								action="#{chatController.disconnect()}"
+								rendered="#{chatController.connected == true}" type="submit" />
+							<h:commandButton value="Add">
+								<rich:componentControl target="popup" operation="show" />
+							</h:commandButton>
+							<a4j:outputPanel id="pushState">
+								<h:outputText style="font-weight: bold; color: RED;" value="ERR"
+									rendered="#{!chatController.pushWorking}" />
+								<h:outputText style="font-weight: bold; color: green;"
+									value="OK" rendered="#{chatController.pushWorking}" />
+							</a4j:outputPanel>
 						</rich:panel>
 						<a4j:jsFunction action="#{chatController.exitConversation()}"
-							name="exitConversation" ajaxSingle="true"
-							render="messages">
+							name="exitConversation" ajaxSingle="true" render="messages">
 							<f:param name="current" />
 						</a4j:jsFunction>
 
 						<a4j:push
 							address="#{chatController.userIdentifier}pushTest@imService"
-							onerror="alert(event.rf.data)" >
-							<a4j:ajax event="dataavailable" execute="#{chatController.setPushWorking(true)}" render="pushState"/>
+							onerror="alert(event.rf.data)">
+							<a4j:ajax event="dataavailable"
+								execute="#{chatController.setPushWorking(true)}"
+								render="pushState" />
 						</a4j:push>
 					</h:form>
 				</h:panelGrid>
 			</rich:panel>
 			<h:form id="instantmessanger">
-			<a4j:poll interval="7000" execute="#{chatController.checkPush()}" render="pushState"/>
-				<a4j:commandButton id="pushcheck" value="refresh" action="#{chatController.setPushWorking(true)}" render="pushState"></a4j:commandButton>
+				<a4j:poll interval="7000" execute="#{chatController.checkPush()}"
+					render="pushState" />
+				<a4j:commandButton id="pushcheck" value="refresh"
+					action="#{chatController.setPushWorking(true)}" render="pushState"></a4j:commandButton>
 			</h:form>
-			
-		
+
+
 		</rich:panel>
-		
-		
-    <rich:popupPanel id="popup" modal="true" autosized="true" resizeable="false" styleClass="loginPanel">
-        <f:facet name="header">
-            <h:outputText value="Accounts" />
-        </f:facet>
-        <f:facet name="controls">
-            <h:outputLink value="#" onclick="#{rich:component('popup')}.hide(); return false;">
+
+
+		<rich:popupPanel id="popup" modal="true" autosized="true"
+			resizeable="false">
+			<f:facet name="header">
+				<h:outputText value="Accounts" />
+			</f:facet>
+			<f:facet name="controls">
+				<h:outputLink value="#"
+					onclick="#{rich:component('popup')}.hide(); return false;">
                 X
             </h:outputLink>
-        </f:facet>
-        
-        <h:form> 
-        <rich:panel id="accounts">
-        <table>
-      	<a4j:repeat value="#{chatController.accounts}" var="account">
-      	<tr>
-      	 <td> #{account.username} </td><td>#{account.server}</td> <td> <a4j:commandLink>Delete</a4j:commandLink></td>
-      	 <td><a4j:commandLink>Disconnect</a4j:commandLink></td>
-      	</tr>
-      	</a4j:repeat>
-      	</table>
-      	</rich:panel>
-      </h:form>
-				<h:form >
-					<rich:panel header="Add">
-					
+			</f:facet>
+
+			<h:form>
+				<rich:panel id="accounts">
 					<table>
-					
+						<a4j:repeat value="#{chatController.storedAccounts}" var="account">
+							<tr>
+								<td><h:outputText value="#{account.userName}" /></td>
+								<td><h:outputText value="#{account.protocol}" /></td>
+								<td><a4j:commandLink
+										action="#{chatController.deleteAccount(account)}">Delete</a4j:commandLink></td>
+								<td><a4j:commandLink
+										action="#{chatController.disconnectAccount(account)}"
+										render="controls">Disconnect</a4j:commandLink></td>
+							</tr>
+						</a4j:repeat>
+					</table>
+				</rich:panel>
+			</h:form>
+			<h:form>
+				<rich:panel header="Add" styleClass="loginPanel">
+
+					<table>
+
 						<tr>
 							<td><h:outputLabel value="Login" /></td>
-							<td><h:inputText id="login2" value="#{chatController.username}" /></td>
+							<td><h:inputText id="login2"
+									value="#{chatController.username}" /></td>
 						</tr>
 						<tr>
-							<td><h:outputLabel value="Password" for="pass2"  /></td>
-							<td><h:inputSecret id="pass2" value="#{chatController.password}"/></td>
+							<td><h:outputLabel value="Password" for="pass2" /></td>
+							<td><h:inputSecret id="pass2"
+									value="#{chatController.password}" /></td>
 						</tr>
 						<tr>
 							<td><h:outputLabel value="Protocol" for="select2" /></td>
-							<td><rich:select  id="select2" value="#{chatController.toSelect}" >
-							<a4j:ajax event="change" onerror="handleAjaxError"
-									render="popup" />
-									
-									<f:selectItems value="#{chatController.selectedConf}" />
-									
+							<td><rich:select id="select2"
+									value="#{chatController.selectedProtocol}">
+									<a4j:ajax event="change" onerror="handleAjaxError"
+										render="popup" />
+
+									<f:selectItems value="#{chatController.protocols}" />
+
 								</rich:select></td>
 						</tr>
 						<tr>
-							<td><h:outputLabel value="Server" for="server2" rendered="#{chatController.toSelect== 'NONE'}" /></td>
-							<td><h:inputText id="server2" value="#{chatController.server}" rendered="#{chatController.toSelect== 'NONE'}"/></td>
-							</tr>
-							<tr>
-							<td><h:outputLabel value="Domain"  rendered="#{chatController.toSelect== 'NONE'}"/></td>
-							<td><h:inputText id="domain2" value="#{chatController.service}" rendered="#{chatController.toSelect== 'NONE'}"/></td>
+							<td><h:outputLabel value="Server" for="server2"
+									rendered="#{chatController.selectedProtocol== 'NONE'}" /></td>
+							<td><h:inputText id="server2"
+									value="#{chatController.server}"
+									rendered="#{chatController.selectedProtocol== 'NONE'}" /></td>
 						</tr>
-							<tr> 
-							<td><a4j:commandButton value="add"
+						<tr>
+							<td><h:outputLabel value="Domain"
+									rendered="#{chatController.selectedProtocol== 'NONE'}" /></td>
+							<td><h:inputText id="domain2"
+									value="#{chatController.service}"
+									rendered="#{chatController.selectedProtocol== 'NONE'}" /></td>
+						</tr>
+						<tr>
+							<td>save account <h:selectBooleanCheckbox
+									value="#{chatController.saveAccount}" title="Save account"
+									label="Save account" /><a4j:commandButton value="add"
 									action="#{chatController.addAccount()}" render="accounts" /></td>
-									<td>
-									<a4j:commandButton value="Close"
-									onclick="#{rich:component('popup')}.hide();return false;"  /></td>
+							<td><a4j:commandButton value="Close"
+									onclick="#{rich:component('popup')}.hide();return false;" /></td>
 						</tr>
 					</table>
-					</rich:panel>
-				</h:form>
-    </rich:popupPanel>
+				</rich:panel>
+			</h:form>
+		</rich:popupPanel>
 	</h:body>
 </f:view>

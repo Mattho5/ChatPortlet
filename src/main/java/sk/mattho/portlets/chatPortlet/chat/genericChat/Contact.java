@@ -147,5 +147,7 @@ public abstract class Contact implements Serializable {
 			return false;
 		return true;
 	}
-
+	public boolean isFrom(ChatInterface chat){
+		return this.getMySession().equals(chat);
+	}
 }

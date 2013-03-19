@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import sk.mattho.portlets.chatPortlet.chat.xmpp.XmppChat;
+
 public abstract class ChatInterface implements Serializable {
 	/**
 	 * 
@@ -58,13 +60,13 @@ public abstract class ChatInterface implements Serializable {
 	
 	public void notifyConnected(){
 		for(ChatEventsListener l:this.eventsListeners){
-			l.connected();
+			l.connected(this);
 		}
 		
 	}
 	public void notifyDisconnected(){
 		for(ChatEventsListener l:this.eventsListeners){
-			l.disconnected();
+			l.disconnected(this);
 		}
 		
 //-------------------------------------------------
@@ -90,6 +92,36 @@ public abstract class ChatInterface implements Serializable {
 	}
 	public void setPort(int port) {
 		this.port = port;
+	}
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((server == null) ? 0 : server.hashCode());
+		result = prime * result
+				+ ((username == null) ? 0 : username.hashCode());
+		return result;
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ChatInterface other = (ChatInterface) obj;
+		if (server == null) {
+			if (other.server != null)
+				return false;
+		} else if (!server.equals(other.server))
+			return false;
+		if (username == null) {
+			if (other.username != null)
+				return false;
+		} else if (!username.equals(other.username))
+			return false;
+		return true;
 	}
 	
 

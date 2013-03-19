@@ -47,8 +47,6 @@ public class XmppChat extends ChatInterface {
 		this.chatManagerListener= new ChatManagerListener() {
 			@Override
 			public void chatCreated(Chat chat, boolean createdLocally) {
-
-				// notifyIncomingChat(null);
 				System.out.println("Incoming chat!!!!"
 						+ chat.getParticipant());
 				XmppContact contact = (XmppContact) findContactByIdName(chat
@@ -70,8 +68,10 @@ public class XmppChat extends ChatInterface {
 				c.setOnline(true);
 				c.setState(ContactState.AVAILABLE);
 
-			} else
+			} else{
 				c.setOnline(false);
+				c.setState(null);
+			}
 			if (presence.getStatus() != "")
 				c.setStatus(presence.getStatus());
 
@@ -93,6 +93,7 @@ public class XmppChat extends ChatInterface {
 			case xa:
 				c.setState(ContactState.AWAY);
 				break;
+				
 			default:
 				c.setState(ContactState.AVAILABLE);
 			}
@@ -159,6 +160,7 @@ public class XmppChat extends ChatInterface {
 					+ (connection.getUser().split("@"))[0]);
 			System.exit(1);
 			return false;
+		
 		}
 		return true;
 
@@ -223,12 +225,14 @@ public class XmppChat extends ChatInterface {
 	public void disconnect() {
 		this.contacts.clear();
 		this.connection.getRoster().removeRosterListener(this.rosterListener);
-		this.connection.getChatManager().removeChatListener(chatManagerListener);
+		this.connection.getChatManager().removeChatListener(this.chatManagerListener);
 		// this.connection.disconnect(Presence.Type.unavailable);
 		//this.connection.
 		this.connection.disconnect();
+		this.contacts.clear();
 		//thos/this.connection.shutdown();
 		this.connection=null;
+		this.notifyDisconnected();
 
 	}
 
@@ -266,7 +270,7 @@ public class XmppChat extends ChatInterface {
 		// Contact temp=null;
 		for (Contact c : this.getContacts()) {
 			// String[] contactName=
-			if (((XmppContact) c).getPresenceFrom().compareTo(idName) == 0)
+			if (((XmppContact) c).getIdName().compareTo(idName) == 0)
 				return c;
 		}
 		return null;

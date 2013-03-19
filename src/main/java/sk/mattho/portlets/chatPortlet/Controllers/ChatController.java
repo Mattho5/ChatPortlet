@@ -19,6 +19,7 @@ package sk.mattho.portlets.chatPortlet.Controllers;
 import java.io.IOException;
 import java.io.Serializable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -41,6 +42,7 @@ import javax.portlet.ValidatorException;
 import org.richfaces.application.push.MessageException;
 import org.richfaces.application.push.TopicKey;
 import org.richfaces.application.push.TopicsContext;
+import org.richfaces.component.ComponentPredicates;
 
 import sk.mattho.portlets.chatPortlet.AccountInfo;
 import sk.mattho.portlets.chatPortlet.PreferencesAccounts;
@@ -67,109 +69,119 @@ public class ChatController implements Serializable, ChatEventsListener {
 	private String password;
 	private String port;
 	private String server;
-	private ChatConfigurations[] selectedConf;
-	private ChatConfigurations toSelect;
+	private PreferencesAccounts storedAccounts;
+	private boolean saveAccount;
+	
+
+	private ChatConfigurations[] protocols;
+	
 	private final String userIdentifier = UUID.randomUUID().toString()
 			.replace("-", "");
 
-	public ChatConfigurations[] getSelectedConf() {
-		return selectedConf;
-	}
-
-	public void setSelectedConf(ChatConfigurations[] selectedConf) {
-		this.selectedConf = selectedConf;
-	}
-
-	public ChatConfigurations getToSelect() {
-		return toSelect;
-	}
-
-	public void setToSelect(ChatConfigurations toSelect) {
-		this.toSelect = toSelect;
-	}
-
+	
 	private String actualTab;
 
 	private TopicsContext topicsContext;
 	private static final String CDI_PUSH_TOPIC = "imService";
 
-	public String getUserIdentifier() {
-		return userIdentifier;
-	}
+
 
 	@Inject
 	private ChatManager manager;
-
 	private static final long serialVersionUID = -6239437588285327644L;
 
 	@PostConstruct
 	public void postContruct() {
 		this.connected = false;
-		// this.userIdentifier=
-		this.selectedConf = ChatConfigurations.values();
-	//this.initFromPreferences();
+		this.protocols = ChatConfigurations.values();
 	}
+
 	public boolean isConnected() {
 
 		return this.connected;
 	}
 
-	public void initFromPreferences(){
-		Object request = FacesContext.getCurrentInstance().getExternalContext().getRequest();
-		if (request instanceof ActionRequest) {
-			ActionRequest actionReq = (ActionRequest) request; 
-			PortletPreferences p=	actionReq.getPreferences();
-			//=p.getMap()
-		//	Map<String,String[]> pref=p.getMap();
-		//	String[] temp=pref.get("accounts");
-		//String[] acc=	actionReq.getParameter ("accounts");
-			String temp = "";
-			temp= p.getValue("accounts",temp);
-			System.out.println("temp"+ temp);
-			PreferencesAccounts pr= new PreferencesAccounts(temp);
-			//boolean tmp= false;
-		for(AccountInfo a:pr.accounts()){
-			if( this.manager.addAccount(a.getUserName(),a.getPassword(),this, a.getProtocol()));
-			 	//	if(this.addAccount())
-					this.connected=true;
-			}
-			
-		
+	public void initFromPreferences() {
+		PreferencesAccounts pr= this.getFromPreferences();
+		if(pr!=null){
+			this.storedAccounts=pr;
+		for (AccountInfo a : pr.accounts()) {
+			if (this.manager.addAccount(a.getUserName(),
+					a.getPassword(), this, a.getProtocol()))
+			this.connected = true;
 		}
-		
+		}
+		else this.storedAccounts=new PreferencesAccounts();
+
 	}
-	
-	private boolean saveToPreferences(){
-		Object request = FacesContext.getCurrentInstance().getExternalContext().getRequest();
+
+	private boolean saveToPreferences() {
+		Object request = FacesContext.getCurrentInstance().getExternalContext()
+				.getRequest();
 		if (request instanceof ActionRequest) {
-			ActionRequest actionReq = (ActionRequest) request; 
-			
-				try {
-					AccountInfo acc= new AccountInfo(this.username,this.password,this.toSelect);
-					PreferencesAccounts pref= new PreferencesAccounts();
-					pref.addAccount(acc);
-				PortletPreferences p=	actionReq.getPreferences();
-				p.setValue("accounts", pref.getAccounts());
-						actionReq.getPreferences().store();
-						System.out.println("preferences stored");
-					}
-				catch (ValidatorException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					
-				} catch (ReadOnlyException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				
-		
+			ActionRequest actionReq = (ActionRequest) request;
+
+			try {	
+				PortletPreferences p = actionReq.getPreferences();				
+				p.setValue("accounts", this.storedAccounts.getAccounts());
+				actionReq.getPreferences().store();
+				System.out.println("preferences stored");
+			} catch (ValidatorException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+
+			} catch (ReadOnlyException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
 		}
 		return false;
 	}
+	
+	private void addToPreferences(){
+		PreferencesAccounts pr= this.getFromPreferences();
+		if(pr==null)
+			pr= new PreferencesAccounts();
+		pr.addAccount(new AccountInfo(username, password, selectedProtocol));
+		this.saveToPreferences();
+	}
+	
+	private PreferencesAccounts getFromPreferences(){
+		Object request = FacesContext.getCurrentInstance().getExternalContext()
+				.getRequest();
+		if (request instanceof ActionRequest) {
+			ActionRequest actionReq = (ActionRequest) request;
+			PortletPreferences p = actionReq.getPreferences();
+			String temp = "";
+			temp = p.getValue("accounts", temp);
+			System.out.println("temp" + temp);
+			if (temp != null && temp.compareTo("") != 0) {
+				PreferencesAccounts pr = new PreferencesAccounts(temp);
+				return pr;
+				
+			} else
+				System.out.println("No preferences!");
+			return null;
 
+		}
+		return null;
+	}
+	public void deleteAccount(AccountInfo acc){
+		this.storedAccounts.accounts().remove(acc);
+		this.saveToPreferences();
+		this.disconnectAccount(acc);
+		
+		this.saveToPreferences();
+	}
+	public void disconnectAccount(AccountInfo acc){
+		this.manager.disconnect(acc.getProtocol().getServer(),acc.getUserName());
+		if(this.manager.getAccounts().size()<1)
+			this.connected= false;
+	}
 	public List<Contact> getContacts() {
 		List<Contact> temp = this.manager.getFriends();
 		Comparator<Contact> c = new Comparator<Contact>() {
@@ -200,17 +212,18 @@ public class ChatController implements Serializable, ChatEventsListener {
 	 */
 
 	public void connect() {
-		if (this.toSelect != ChatConfigurations.NONE) {
+		if (this.selectedProtocol != ChatConfigurations.NONE) {
 			this.connected = this.manager.addAccount(this.username,
-					this.password, this, this.toSelect);
+					this.password, this, this.selectedProtocol);
+			if(this.saveAccount)
+				this.addToPreferences();
 		} else {
 			if (this.manager.addAccount(this.username, this.password,
 					this.server, 5222, this.service, this))
 				this.connected = true;
 		}
-		
-		//this.saveToPreferences();
-		
+
+		// this.saveToPreferences();
 
 	}
 
@@ -222,14 +235,18 @@ public class ChatController implements Serializable, ChatEventsListener {
 	}
 
 	public boolean addAccount() {
-		boolean result=false;
-		if (this.toSelect != ChatConfigurations.NONE)
-		result=	this.manager.addAccount(this.username, this.password, this,
-					this.toSelect);
-	//	else
-		//	this.connected = true;
-		//TODO add other account
-return result;
+		boolean result = false;
+		if (this.selectedProtocol != ChatConfigurations.NONE){
+			result = this.manager.addAccount(this.username, this.password,
+					this, this.selectedProtocol);
+			if(this.saveAccount)
+				this.addToPreferences();
+		}
+		
+		// else
+		// this.connected = true;
+		// TODO add other account
+		return result;
 	}
 
 	public void setCurrentConversation(String idname) {
@@ -399,15 +416,16 @@ return result;
 	}
 
 	@Override
-	public void connected() {
+	public void connected(ChatInterface chatInterface) {
 		// TODO Auto-generated method stub
 		this.contactWindowRefresh();
 
 	}
 
 	@Override
-	public void disconnected() {
-		// TODO Auto-generated method stub
+	public void disconnected(ChatInterface chatSession) {
+		//
+		this.contactWindowRefresh();
 
 	}
 
@@ -533,10 +551,34 @@ return result;
 	public void setServer(String server) {
 		this.server = server;
 	}
-	
-	public List<ChatInterface> getAccounts(){
-		return this.manager.getAccounts();
-		
+
+	public List<AccountInfo> getStoredAccounts() {
+		if(this.storedAccounts!=null)
+		return this.storedAccounts.accounts();
+		else return null;
 	}
+	public boolean isSaveAccount() {
+		return saveAccount;
+	}
+
+	public void setSaveAccount(boolean saveAccount) {
+		this.saveAccount = saveAccount;
+	}
+	private ChatConfigurations selectedProtocol;
+	public ChatConfigurations getSelectedProtocol() {
+		return selectedProtocol;
+	}
+
+	public void setSelectedProtocol(ChatConfigurations selectedProtocol) {
+		this.selectedProtocol = selectedProtocol;
+	}
+
+	public ChatConfigurations[] getProtocols() {
+		return protocols;
+	}
+	public String getUserIdentifier() {
+		return userIdentifier;
+	}
+
 
 }
