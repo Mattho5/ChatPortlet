@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition template="/WEB-INF/templates/default.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:a4j="http://richfaces.org/a4j"
+                xmlns:rich="http://richfaces.org/rich"
+                xmlns:my="http://java.sun.com/jsf/composite/components">
+    <ui:define name="content">
+	<h:form id="instantmessanger">
+			<h:panelGrid id="window" columns="2" style="width: 100%">
+				<f:facet name="header">
+            <h:outputText value="Instalnt messenger"/>
+        </f:facet>
+
+				<h:panelGrid id="logPanel" tittle="panel" columns="2" rendered="#{chatController.connected == false}">
+					<h:outputLabel value="login" for="login" />
+					<h:inputText id="login" />
+
+					<h:outputLabel value="password" for="pass" />
+					<h:inputSecret id="pass" />
+					<a4j:commandButton id="reset" value="connect"
+						action="#{chatController.connect()}" render="@form" />
+				</h:panelGrid>
+				
+				<a4j:outputPanel id="messages" title="messages" rendered="#{chatController.connected == true}" style="width: 70%">
+			 <rich:tabPanel id="conversations" switchType="client" rendered="#{chatController.conversations.size()>0}">
+
+						<c:forEach items="#{chatController.conversations}" var="conver" varStatus="status">
+							<rich:tab>
+								<f:facet name="header">
+								<h:panelGrid columns="2"><h:outputLabel value="#{conver.idName}"></h:outputLabel>
+									<h:graphicImage id="close#{status.count}" value="close.png" onclick="myFunc('#{conver.idName}'); Event.stop(event);"/>
+									</h:panelGrid>	
+								</f:facet>  
+						<!--  a4j:push address="#{conver.messageName}" event="dataavailable" render="mess#{status.count}"></a4j:push>	-->	
+           				<a4j:commandButton title="refresh" render="mess#{status.count}"/>
+           				<h:outputText id="mess#{status.count}" value="#{conver.history}" /> <br />
+           				 <h:inputTextarea value="#{conver.actualMessage}" style="width: 100%" rows="3" />
+           					<a4j:commandButton value="send" action="#{conver.sendMessage()}" />
+        				</rich:tab>
+						</c:forEach>
+
+					</rich:tabPanel>
+				</a4j:outputPanel> 
+				
+				
+				<rich:panel id="output" title="Contacts"
+					rendered="#{chatController.connected == true}" style="width: 180px; float: right">
+					<a4j:commandButton id="disconnect" value="disconnect"
+						action="#{chatController.disconnect()}" render="@form"
+						rendered="#{chatController.connected == true}" />
+					<rich:panelMenu mode="ajax" >
+						<rich:panelMenuGroup label="Contacts">
+							<c:forEach items="#{chatController.contacts}" var="contact">
+								<rich:panelMenuItem label="#{contact.name}"  render="messages"
+									action="#{chatController.newConversation(contact)}" style="width: 160px" />
+
+							</c:forEach>
+						</rich:panelMenuGroup>
+					</rich:panelMenu>
+
+				</rich:panel>
+				<a4j:jsFunction action="#{chatController.exitConversation()}" name="myFunc" ajaxSingle="true"  render="messages">
+			<f:param name="current"/>
+			</a4j:jsFunction>
+				
+			</h:panelGrid>
+			
+		</h:form>
+		
+    </ui:define>
+</ui:composition>

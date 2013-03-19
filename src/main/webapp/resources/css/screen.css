@@ -1,0 +1,178 @@
+@CHARSET "UTF-8";	
+.wrapper {
+	background-color:white;
+	border:none;
+}
+.title{
+font-size:150%;
+
+
+}
+
+/*
+Replacing richfaces style
+===============================================================
+*/
+.rf-tab-hdr{
+	
+	border:none;
+	border-radius: 5px;
+	background-image: none !important;
+}
+.rf-tab-hdr-tabline-vis {
+	border: none !important;
+	background-color: white !important;
+}
+.rf-tab-hdr-tabline-top{
+	border:none !important; 
+	background-color: white !important;
+}
+.rf-tbp{
+	border:none;
+}
+.rf-tab-hdr-act{
+	background-color: #99FF00 !important;
+	background-image: none;
+	
+}
+.rf-tab-cnt{
+	border-radius: 8px;
+	background-color: white !important;
+	
+}
+.rf-tab-hdr-tabs
+{
+	background-color:white;
+	
+	border-color : none;
+	border-radius: 5px;
+	background-image: none;
+}
+.rf-tab-hdr-brd
+{border: none;
+background-color: white !important; 
+height: 0px;
+width: 0px;
+ }
+ .rf-tab-hdr-tablst {
+ border none;
+ background-color: white !important;
+ width: 100px !important;
+}
+.rf-tab-hdr-tabline-vis{
+	background-color: white !important;
+	border:none;
+}
+
+.rf-tt-cntr{
+	border:none;
+	 color: #404040;
+	border-radius: 5px;
+	-moz-box-shadow: 2px 2px 2px #A0A0A0;
+-webkit-box-shadow: 2px 2px 2px #A0A0A0 ;
+box-shadow: 2px 2px 2px #A0A0A0 ;
+}
+.rf-p-hdr, .rf-pp-hdr {
+	border-radius:8px;
+}
+rf-p {
+	background-color: white;
+}
+/*==========================================================*/
+.loginPanel {
+	width: 300px;
+	float: center;
+	background-color: white;
+	margin: auto;
+	border-radius: 8px;
+}
+.contactWrapper{
+	width:195px;
+	float: right;
+	border: none;
+	background-color:white;
+	
+}
+.conversation {
+	background-color: #F5FFE0;
+	width: 100%;
+	border: 1px solid #D8D8D8;
+	height: 257px; overflow: auto; 
+	border-radius: 8px;
+	color: #404040;
+}
+
+.lineSpace{
+	width: 100%;
+	height: 5px;
+	
+	position: relative;
+}
+.concreteMessage{
+	background-color: white;
+	padding: 2px;
+	max-width: 90%;
+	
+	border-radius: 5px;
+	-moz-box-shadow: 2px 2px 2px #A0A0A0;
+-webkit-box-shadow: 2px 2px 2px #A0A0A0 ;
+box-shadow: 2px 2px 2px #A0A0A0 ;
+	}
+.contactStatus {
+	border: 1px solid #000000;
+	white-space: nowrap;
+	width: 100%;
+	overflow: hidden;
+	font-size: 80%;
+	text-overflow: ellipsis;
+}
+
+.contact {
+	border: none;
+	background-color: white;
+	width: 100%;
+	color: #404040;
+	border-radius: 5px;
+	
+}
+
+.contact:hover {
+	color: black;
+	border-radius: 8px;
+	background-color:#99FF00;
+}
+
+.contactDiv {
+	width: 160px;
+	
+	height: 27px;
+	overflow: hidden;
+	
+	text-align: center;
+	
+}
+
+.impanel {
+	height: 500px;
+	border-radius: 10px;
+	background-color:white;
+	-moz-border-radius: 5px;
+border-radius: 5px;
+-moz-box-shadow: 5px 5px 5px #A0A0A0;
+-webkit-box-shadow: 5px 5px 5px #A0A0A0 ;
+box-shadow: 5px 5px 5px #A0A0A0 ;
+}
+
+.contacts {
+	background-color: white;
+	width: 190px;
+	margin: auto;
+	height: 400px;
+	overflow: auto;
+	border-radius: 8px;
+	
+}
+.newMessage{
+color: green;
+font-weight: bold;
+}

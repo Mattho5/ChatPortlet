@@ -1,0 +1,129 @@
+<f:view xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:a4j="http://richfaces.org/a4j"
+	xmlns:rich="http://richfaces.org/rich">
+	<!-- the f:view above prevents an erroneous <html> within <body> coming from portal. -->
+	<!-- <h:head /> and <h:body> in the following are always needed otherwise JSF Facelets won't work -->
+	<h:head />
+	<h:body styleClass="jsf2Rf4HelloWorldPortlet">
+
+
+		<h:form id="instantmessanger">
+			<a4j:commandButton value="disconnect"
+				action="#{chatController.disconnect()}" />
+			<a4j:commandButton id="sendMsg" value="send"
+				action="#{chatController.push()}" />
+
+		</h:form>
+		<h:outputText id="outputDate" value=" Date: #{chatController.date}" />
+		<rich:panel><f:facet name="header">
+				<h:outputText value="Instalnt messenger" />
+			</f:facet>
+		<h:panelGrid id="window" columns="2"
+			style="width: 100%; overflow: auto;">
+			
+			<h:form>
+				<a4j:push
+					address="#{chatController.userIdentifier}message@imService"
+					onerror="alert(event.rf.data)">
+					<a4j:ajax event="dataavailable" render="messages" />
+				</a4j:push>
+				<a4j:outputPanel id="messages" title="messages"
+					style=" width: 100%; overflow: auto;">
+					<rich:tabPanel id="conversations" switchType="ajax"
+						style=" width: 100%; height:400px; "
+						rendered="#{chatController.conversations.size()>0}">
+						<a4j:repeat value="#{chatController.conversations}" var="conver"
+							varStatus="status">
+							<rich:tab>
+								<f:facet name="header">
+									<h:panelGrid columns="2">
+										<h:outputLabel value="#{conver.idName}"></h:outputLabel>
+										<h:graphicImage id="close#{status.count}" value="close.png"
+											onclick="exitConversation('#{conver.idName}'); Event.stop(event);" />
+									</h:panelGrid>
+								</f:facet>
+
+
+
+								<a4j:outputPanel id="messageList">
+									<rich:panel style=" width: 100%; height:240px; overflow:auto">
+
+										<a4j:repeat value="#{conver.messagesHistory}" var="message">
+											<h:outputText value="#{message.time} #{message.from}: "
+												style="color: blue; " rendered="#{message.from=='Me'}" />
+											<h:outputText value="#{message.time} #{message.from}}: "
+												style="color: green;  " rendered="#{message.from!='Me'}" />
+											<h:outputText value="#{message.message}"
+												style="font-size: 115%" />
+											<br />
+										</a4j:repeat>
+
+									</rich:panel>
+									<a4j:commandButton value="refresh" render="messageList" />
+									<h:inputTextarea value="#{conver.actualMessage}"
+										style="width: 100%" rows="3">
+										<rich:hotKey key="return" onkeydown="sendm()"
+											enabledInInput="true" />
+									</h:inputTextarea>
+
+									<a4j:jsFunction name="sendm" action="#{conver.sendMessage()}" />
+									<a4j:commandButton value="send"
+										action="#{conver.sendMessage()}" />
+								</a4j:outputPanel>
+							</rich:tab>
+						</a4j:repeat>
+
+					</rich:tabPanel>
+				</a4j:outputPanel>
+			</h:form>
+
+			<h:form>
+				<a4j:push
+					address="#{chatController.userIdentifier}contact@imService"
+					onerror="alert(event.rf.data)">
+					<a4j:ajax event="dataavailable" render="contacts" />
+				</a4j:push>
+				<rich:panel id="output" header="Contacts"
+					style="min-width:250px; height: 400px; float: right; overflow: auto">
+
+					<rich:panelMenu id="contacts" mode="ajax">
+
+						<a4j:repeat value="#{chatController.contacts}" var="contact">
+							<rich:panelMenuItem render="messages"
+								action="#{chatController.newConversation(contact)}"
+								rendered="#{contact.online}">
+
+								<h:outputText value="#{contact.name} " />
+								<br />
+								<h:outputText value="#{contact.state}" style="font-size: 80%;" />
+
+
+							</rich:panelMenuItem>
+
+						</a4j:repeat>
+
+					</rich:panelMenu>
+
+				</rich:panel>
+				<a4j:jsFunction action="#{chatController.exitConversation()}"
+					name="exitConversation" ajaxSingle="true" render="messages">
+					<f:param name="current" />
+				</a4j:jsFunction>
+
+
+
+				<a4j:push
+					address="#{chatController.userIdentifier}outputDate@imService"
+					onerror="alert(event.rf.data)">
+					<a4j:ajax event="dataavailable" render="outputDate" />
+
+				</a4j:push>
+			</h:form>
+
+		</h:panelGrid>
+		</rich:panel>
+	</h:body>
+</f:view>
