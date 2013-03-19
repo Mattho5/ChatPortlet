@@ -145,6 +145,10 @@
 			<artifactId>cdi-api</artifactId>
 			<version>1.1-20130222</version>
 		</dependency>
+		<dependency>
+			<groupId>javax.portlet</groupId>
+			<artifactId>portlet-api</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
