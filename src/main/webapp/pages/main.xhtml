@@ -37,7 +37,7 @@
 							<td><h:outputLabel value="Protocol" for="select" /></td>
 							<td><rich:select id="select"
 									value="#{chatController.selectedProtocol}">
-									<a4j:ajax event="change" onerror="handleAjaxError"
+									<a4j:ajax event="selectitem" onerror="handleAjaxError"
 										render="loginpanel" />
 
 									<f:selectItems value="#{chatController.protocols}" />
@@ -59,15 +59,24 @@
 									rendered="#{chatController.selectedProtocol== 'NONE'}" /></td>
 						</tr>
 						<tr>
-							<td><h:selectBooleanCheckbox
+							<td>Save Account<h:selectBooleanCheckbox
 									value="#{chatController.saveAccount}" title="Save account"
 									label="Save account" /></td>
-							<td><h:commandButton value="connect"
-									action="#{chatController.connect()}" type="submit" /> <h:commandButton
+							<td><h:commandButton value="connect" onclick="  $('.loading').show()" 
+									action="#{chatController.connect()}" type="submit">
+									</h:commandButton>
+									 <h:commandButton
 									value="connectfromPref"
-									action="#{chatController.initFromPreferences()}" type="submit" /></td>
+									action="#{chatController.initFromPreferences()}" type="submit" >
+									
+									</h:commandButton>
+									</td>
+									
+									
 						</tr>
+						
 					</table>
+					<h:graphicImage  styleClass="loading" value="images/loader.gif" style="display:none; margin: auto;" /> 
 				</h:form>
 
 			</rich:panel>
@@ -301,11 +310,9 @@
 					</h:form>
 				</h:panelGrid>
 			</rich:panel>
-			<h:form id="instantmessanger">
+			<h:form >
 				<a4j:poll interval="7000" execute="#{chatController.checkPush()}"
 					render="pushState" />
-				<a4j:commandButton id="pushcheck" value="refresh"
-					action="#{chatController.setPushWorking(true)}" render="pushState"></a4j:commandButton>
 			</h:form>
 
 
@@ -319,7 +326,7 @@
 			</f:facet>
 			<f:facet name="controls">
 				<h:outputLink value="#"
-					onclick="#{rich:component('popup')}.hide(); return false;">
+					onclick="#{rich:component('popup')}.hide();">
                 X
             </h:outputLink>
 			</f:facet>
@@ -331,18 +338,18 @@
 							<tr>
 								<td><h:outputText value="#{account.userName}" /></td>
 								<td><h:outputText value="#{account.protocol}" /></td>
-								<td><a4j:commandLink
-										action="#{chatController.deleteAccount(account)}">Delete</a4j:commandLink></td>
-								<td><a4j:commandLink
+								<td><h:commandLink value="Delete"
+										action="#{chatController.deleteAccount(account)}" render="accounts" /></td>
+								<td><h:commandLink
 										action="#{chatController.disconnectAccount(account)}"
-										render="controls">Disconnect</a4j:commandLink></td>
+										render="accounts">Disconnect</h:commandLink></td>
 							</tr>
 						</a4j:repeat>
 					</table>
 				</rich:panel>
 			</h:form>
 			<h:form>
-				<rich:panel header="Add" styleClass="loginPanel">
+				<rich:panel header="Add" styleClass="loginPanel" id="addAccount">
 
 					<table>
 
@@ -360,8 +367,8 @@
 							<td><h:outputLabel value="Protocol" for="select2" /></td>
 							<td><rich:select id="select2"
 									value="#{chatController.selectedProtocol}">
-									<a4j:ajax event="change" onerror="handleAjaxError"
-										render="popup" />
+									<a4j:ajax event="selectitem" onerror="handleAjaxError"
+										render="addAccount" />
 
 									<f:selectItems value="#{chatController.protocols}" />
 
@@ -384,9 +391,10 @@
 						<tr>
 							<td>save account <h:selectBooleanCheckbox
 									value="#{chatController.saveAccount}" title="Save account"
-									label="Save account" /><a4j:commandButton value="add"
+									label="Save account" />
+									<h:commandButton value="add"
 									action="#{chatController.addAccount()}" render="accounts" /></td>
-							<td><a4j:commandButton value="Close"
+							<td><h:commandButton value="Close"
 									onclick="#{rich:component('popup')}.hide();return false;" /></td>
 						</tr>
 					</table>

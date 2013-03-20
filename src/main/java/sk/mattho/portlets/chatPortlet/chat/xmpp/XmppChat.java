@@ -151,8 +151,9 @@ public class XmppChat extends ChatInterface {
 		try {
 			this.connection.login(name, password);
 			System.out.println("Logged in as " + connection.getUser());
-			// Thread.sleep(3000);
+		//	
 			this.InitContacts();
+			Thread.sleep(2000);
 			this.notifyConnected();
 		} catch (XMPPException ex) {
 			// ex.printStackTrace();
@@ -161,6 +162,9 @@ public class XmppChat extends ChatInterface {
 			System.exit(1);
 			return false;
 		
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return true;
 

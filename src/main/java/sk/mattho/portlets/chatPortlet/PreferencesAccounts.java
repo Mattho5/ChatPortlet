@@ -3,27 +3,39 @@ package sk.mattho.portlets.chatPortlet;
 import java.util.ArrayList;
 import java.util.List;
 
+import sk.mattho.portlets.chatPortlet.utils.DESEncryption;
+
 public class PreferencesAccounts {
 	private static String ACCOUNT_SEPARATOR= "[[";
 	private static String SEPARATOR_REGEX="\\[\\[";
 	private List<AccountInfo> accounts;
+	private DESEncryption encryptor;
 	
-	
-	public PreferencesAccounts(){
+	private void init(){
 		this.accounts= new ArrayList<AccountInfo>();
+		try {
+			this.encryptor= new DESEncryption();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public PreferencesAccounts(){
+		this.init();
 	}
 	
 	public PreferencesAccounts(String accs){
-		this.accounts= new ArrayList<AccountInfo>();
-		
+		this.init();
 		for(String accString: accs.split("\\[\\[")){
 			this.accounts.add(new AccountInfo(accString));
 		}
 	}
+		
 	
 	public List<AccountInfo> accounts(){
 		return accounts;
 	}
+	//public void removeAccount(String userName,)
 	public String getAccounts() {
 		String temp="";
 		

@@ -36,6 +36,7 @@ import javax.inject.Named;
 import javax.portlet.ActionRequest;
 
 import javax.portlet.PortletPreferences;
+import javax.portlet.PortletRequest;
 import javax.portlet.ReadOnlyException;
 import javax.portlet.ValidatorException;
 
@@ -94,13 +95,16 @@ public class ChatController implements Serializable, ChatEventsListener {
 	public void postContruct() {
 		this.connected = false;
 		this.protocols = ChatConfigurations.values();
+		//return "login";
+	
 	}
 
 	public boolean isConnected() {
 
 		return this.connected;
 	}
-
+	
+	
 	public void initFromPreferences() {
 		PreferencesAccounts pr= this.getFromPreferences();
 		if(pr!=null){
@@ -115,39 +119,32 @@ public class ChatController implements Serializable, ChatEventsListener {
 
 	}
 
-	private boolean saveToPreferences() {
-		Object request = FacesContext.getCurrentInstance().getExternalContext()
-				.getRequest();
+	private boolean saveToPreferences(PreferencesAccounts pref) throws ReadOnlyException, ValidatorException, IOException {
+		PortletRequest request = (PortletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
 		if (request instanceof ActionRequest) {
-			ActionRequest actionReq = (ActionRequest) request;
-
-			try {	
-				PortletPreferences p = actionReq.getPreferences();				
-				p.setValue("accounts", this.storedAccounts.getAccounts());
+			ActionRequest actionReq = (ActionRequest) request;	
+				PortletPreferences p = actionReq.getPreferences();	
+				p.reset("accounts");
+				p.setValue("accounts",pref.getAccounts());
 				actionReq.getPreferences().store();
 				System.out.println("preferences stored");
-			} catch (ValidatorException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-
-			} catch (ReadOnlyException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
+				return true;
+			
+		}
+		else {
+			System.out.print("Isn't instance of ActionRequest");
 		}
 		return false;
 	}
 	
-	private void addToPreferences(){
-		PreferencesAccounts pr= this.getFromPreferences();
+	private void addToPreferences() throws ReadOnlyException, ValidatorException, IOException{
+		PreferencesAccounts pr = this.getFromPreferences();
 		if(pr==null)
 			pr= new PreferencesAccounts();
 		pr.addAccount(new AccountInfo(username, password, selectedProtocol));
-		this.saveToPreferences();
+		
+		this.saveToPreferences(pr);
+		this.storedAccounts=pr;
 	}
 	
 	private PreferencesAccounts getFromPreferences(){
@@ -163,19 +160,21 @@ public class ChatController implements Serializable, ChatEventsListener {
 				PreferencesAccounts pr = new PreferencesAccounts(temp);
 				return pr;
 				
-			} else
+			} else{
 				System.out.println("No preferences!");
+				this.storedAccounts=new PreferencesAccounts();
+			}
 			return null;
 
 		}
 		return null;
 	}
-	public void deleteAccount(AccountInfo acc){
-		this.storedAccounts.accounts().remove(acc);
-		this.saveToPreferences();
+	
+	
+	public void deleteAccount(AccountInfo acc) throws ReadOnlyException, ValidatorException, IOException{
 		this.disconnectAccount(acc);
-		
-		this.saveToPreferences();
+		this.storedAccounts.accounts().remove(acc);
+		this.saveToPreferences(this.storedAccounts);
 	}
 	public void disconnectAccount(AccountInfo acc){
 		this.manager.disconnect(acc.getProtocol().getServer(),acc.getUserName());
@@ -209,9 +208,12 @@ public class ChatController implements Serializable, ChatEventsListener {
 	 * 
 	 * @param ae
 	 *            ignored
+	 * @throws IOException 
+	 * @throws ValidatorException 
+	 * @throws ReadOnlyException 
 	 */
 
-	public void connect() {
+	public void connect() throws ReadOnlyException, ValidatorException, IOException {
 		if (this.selectedProtocol != ChatConfigurations.NONE) {
 			this.connected = this.manager.addAccount(this.username,
 					this.password, this, this.selectedProtocol);
@@ -234,12 +236,12 @@ public class ChatController implements Serializable, ChatEventsListener {
 
 	}
 
-	public boolean addAccount() {
+	public boolean addAccount() throws ReadOnlyException, ValidatorException, IOException {
 		boolean result = false;
 		if (this.selectedProtocol != ChatConfigurations.NONE){
 			result = this.manager.addAccount(this.username, this.password,
 					this, this.selectedProtocol);
-			if(this.saveAccount)
+			if(this.saveAccount && result)
 				this.addToPreferences();
 		}
 		
@@ -293,7 +295,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 			if (con.getIdName().compareTo(actualTab) == 0) {
 				this.currentContact = con;
 				this.currentContact.setHasUnreadedMessage(false);
-				System.out.println("setting actual tab" + con);
+				//System.out.println("setting actual tab" + con);
 				break;
 			}
 		}
@@ -322,6 +324,10 @@ public class ChatController implements Serializable, ChatEventsListener {
 		ret = ret.replaceAll(":D",
 				"<img src=\"/chatportlet/pages/emoticons/laugh.png\" />");
 		ret = ret.replaceAll(":-D",
+				"<img src=\"/chatportlet/pages/emoticons/laugh.png\" />");
+		ret = ret.replaceAll(":d",
+				"<img src=\"/chatportlet/pages/emoticons/laugh.png\" />");
+		ret = ret.replaceAll(":-d",
 				"<img src=\"/chatportlet/pages/emoticons/laugh.png\" />");
 		// angel
 		ret = ret.replaceAll("O:-\\)",
@@ -426,6 +432,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 	public void disconnected(ChatInterface chatSession) {
 		//
 		this.contactWindowRefresh();
+		this.messageWindowRefresh();
 
 	}
 
