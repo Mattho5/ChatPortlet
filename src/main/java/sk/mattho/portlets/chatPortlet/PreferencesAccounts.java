@@ -27,7 +27,7 @@ public class PreferencesAccounts {
 	public PreferencesAccounts(String accs){
 		this.init();
 		for(String accString: accs.split("\\[\\[")){
-			this.accounts.add(new AccountInfo(accString));
+			this.accounts.add(new AccountInfo(encryptor.decrypt(accString)));
 		}
 	}
 		
@@ -40,10 +40,10 @@ public class PreferencesAccounts {
 		String temp="";
 		
 		for(AccountInfo a:accounts){
-			temp+=a.toString()+ ACCOUNT_SEPARATOR;
+			temp+=encryptor.encrypt(a.toString())+ ACCOUNT_SEPARATOR;
 		
 		}
-		
+		System.out.println(temp);
 		return temp;
 		
 	}

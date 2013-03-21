@@ -63,13 +63,13 @@
 									value="#{chatController.saveAccount}" title="Save account"
 									label="Save account" /></td>
 							<td><h:commandButton value="connect" onclick="  $('.loading').show()" 
-									action="#{chatController.connect()}" type="submit">
-									</h:commandButton>
+									action="#{chatController.connect()}" type="submit"/>
+									
 									 <h:commandButton
 									value="connectfromPref"
-									action="#{chatController.initFromPreferences()}" type="submit" >
+									action="#{chatController.initFromPreferences()}" onclick="  $('.loading').show()"  type="submit" />
 									
-									</h:commandButton>
+									
 									</td>
 									
 									
