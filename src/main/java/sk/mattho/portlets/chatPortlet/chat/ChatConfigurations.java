@@ -1,9 +1,10 @@
 package sk.mattho.portlets.chatPortlet.chat;
 
 public enum ChatConfigurations {
-	NONE("",0,""),
+	XMPP("",0,""),
 	GTALK("talk.google.com",5222,"gmail.com"),
-	FACEBOOK_CHAT("chat.facebook.com",5222,"chat.facebook.com");
+	FACEBOOK_CHAT("chat.facebook.com",5222,"chat.facebook.com"),
+	IRC("",0,"");
 	
 	private String server;
 	private String domain;

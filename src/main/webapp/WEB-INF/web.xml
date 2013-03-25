@@ -55,18 +55,6 @@
     <servlet-class>org.richfaces.webapp.PushServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
-  <servlet-mapping>
-    <servlet-name>Push Servlet</servlet-name>
-    <url-pattern>/__richfaces_push</url-pattern>
-  </servlet-mapping>
-  <context-param>
-    <param-name>org.richfaces.push.handlerMapping</param-name>
-    <param-value>/__richfaces_push</param-value>
-  </context-param>
-  <context-param>
-    <param-name>org.atmosphere.useBlocking</param-name>
-    <param-value>true</param-value>
-  </context-param>
   <servlet>
     <servlet-name>Faces Servlet</servlet-name>
     <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>

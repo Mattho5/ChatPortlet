@@ -16,21 +16,25 @@
  */
 package sk.mattho.portlets.chatPortlet.Controllers;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Serializable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.SessionScoped;
 
+import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
+import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.portlet.ActionRequest;
@@ -40,11 +44,10 @@ import javax.portlet.PortletRequest;
 import javax.portlet.ReadOnlyException;
 import javax.portlet.ValidatorException;
 
+import org.pircbotx.User;
 import org.richfaces.application.push.MessageException;
 import org.richfaces.application.push.TopicKey;
 import org.richfaces.application.push.TopicsContext;
-import org.richfaces.component.ComponentPredicates;
-
 import sk.mattho.portlets.chatPortlet.AccountInfo;
 import sk.mattho.portlets.chatPortlet.PreferencesAccounts;
 import sk.mattho.portlets.chatPortlet.chat.ChatManager;
@@ -53,6 +56,8 @@ import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatEventsListener;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatInterface;
 
 import sk.mattho.portlets.chatPortlet.chat.genericChat.Contact;
+import sk.mattho.portlets.chatPortlet.chat.irc.IrcChannel;
+import sk.mattho.portlets.chatPortlet.chat.xmpp.XmppContact;
 
 /**
  * {@link ChatController} is the JSF backing bean for the application, holding
@@ -68,24 +73,20 @@ public class ChatController implements Serializable, ChatEventsListener {
 	private String username;
 	private String service;
 	private String password;
-	private String port;
+	private Integer port;
 	private String server;
 	private PreferencesAccounts storedAccounts;
 	private boolean saveAccount;
-	
 
 	private ChatConfigurations[] protocols;
-	
+
 	private final String userIdentifier = UUID.randomUUID().toString()
 			.replace("-", "");
 
-	
 	private String actualTab;
 
 	private TopicsContext topicsContext;
 	private static final String CDI_PUSH_TOPIC = "imService";
-
-
 
 	@Inject
 	private ChatManager manager;
@@ -94,60 +95,77 @@ public class ChatController implements Serializable, ChatEventsListener {
 	@PostConstruct
 	public void postContruct() {
 		this.connected = false;
+		this.username="";
+		this.selectedProtocol=ChatConfigurations.XMPP;
+		this.port=0;
+		this.server="";
+		this.password="";
+		this.service="";
 		this.protocols = ChatConfigurations.values();
-		//return "login";
-	
+		// return "login";
+
 	}
 
 	public boolean isConnected() {
 
 		return this.connected;
 	}
-	
-	
+
 	public void initFromPreferences() {
-		PreferencesAccounts pr= this.getFromPreferences();
-		if(pr!=null){
-			this.storedAccounts=pr;
-		for (AccountInfo a : pr.accounts()) {
-			if (this.manager.addAccount(a.getUserName(),
-					a.getPassword(), this, a.getProtocol()))
-			this.connected = true;
-		}
-		}
-		else this.storedAccounts=new PreferencesAccounts();
+		PreferencesAccounts pr = this.getFromPreferences();
+		if (pr != null) {
+			this.storedAccounts = pr;
+			for (AccountInfo a : pr.accounts()) {
+				try {
+					if (this.manager.addAccount(a.getUserName(),
+							a.getPassword(),a.getServer(), a.getPort(), a.getDomain(),
+							a.getProtocol(),this))
+						this.connected = true;
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					 e.printStackTrace();
+				}
+			}
+		} else
+			this.storedAccounts = new PreferencesAccounts();
 
 	}
 
-	private boolean saveToPreferences(PreferencesAccounts pref) throws ReadOnlyException, ValidatorException, IOException {
-		PortletRequest request = (PortletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
+	private boolean saveToPreferences(PreferencesAccounts pref)
+			throws ReadOnlyException, ValidatorException, IOException {
+		PortletRequest request = (PortletRequest) FacesContext
+				.getCurrentInstance().getExternalContext().getRequest();
 		if (request instanceof ActionRequest) {
-			ActionRequest actionReq = (ActionRequest) request;	
-				PortletPreferences p = actionReq.getPreferences();	
-				p.reset("accounts");
-				p.setValue("accounts",pref.getAccounts());
-				actionReq.getPreferences().store();
-				System.out.println("preferences stored");
-				return true;
-			
-		}
-		else {
+			ActionRequest actionReq = (ActionRequest) request;
+			PortletPreferences p = actionReq.getPreferences();
+			p.reset("accounts");
+			p.setValue("accounts", pref.getAccounts());
+			actionReq.getPreferences().store();
+			System.out.println("preferences stored");
+			return true;
+
+		} else {
 			System.out.print("Isn't instance of ActionRequest");
 		}
 		return false;
 	}
-	
-	private void addToPreferences() throws ReadOnlyException, ValidatorException, IOException{
+
+	private void addToPreferences() throws ReadOnlyException,
+			ValidatorException, IOException {
 		PreferencesAccounts pr = this.getFromPreferences();
-		if(pr==null)
-			pr= new PreferencesAccounts();
-		pr.addAccount(new AccountInfo(username, password, selectedProtocol));
-		
+		if (pr == null)
+			pr = new PreferencesAccounts();
+		AccountInfo prefAccount=new AccountInfo(username, password, selectedProtocol);
+		prefAccount.setDomain(service);
+		prefAccount.setServer(server);
+		prefAccount.setPort(port);
+		pr.addAccount(prefAccount);
+
 		this.saveToPreferences(pr);
-		this.storedAccounts=pr;
+		this.storedAccounts = pr;
 	}
-	
-	private PreferencesAccounts getFromPreferences(){
+
+	private PreferencesAccounts getFromPreferences() {
 		Object request = FacesContext.getCurrentInstance().getExternalContext()
 				.getRequest();
 		if (request instanceof ActionRequest) {
@@ -155,46 +173,57 @@ public class ChatController implements Serializable, ChatEventsListener {
 			PortletPreferences p = actionReq.getPreferences();
 			String temp = "";
 			temp = p.getValue("accounts", temp);
-			System.out.println("temp" + temp);
+		
 			if (temp != null && temp.compareTo("") != 0) {
 				PreferencesAccounts pr = new PreferencesAccounts(temp);
 				return pr;
-				
-			} else{
-				System.out.println("No preferences!");
-				this.storedAccounts=new PreferencesAccounts();
+
+			} else {
+				FacesContext.getCurrentInstance().addMessage(null,
+						new FacesMessage("You haven't saved any account"));;
+				this.storedAccounts = new PreferencesAccounts();
 			}
 			return null;
 
 		}
 		return null;
 	}
-	
-	
-	public void deleteAccount(AccountInfo acc) throws ReadOnlyException, ValidatorException, IOException{
+
+	public void deleteAccount(AccountInfo acc) throws ReadOnlyException,
+			ValidatorException, IOException {
 		this.disconnectAccount(acc);
 		this.storedAccounts.accounts().remove(acc);
 		this.saveToPreferences(this.storedAccounts);
 	}
-	public void disconnectAccount(AccountInfo acc){
-		this.manager.disconnect(acc.getProtocol().getServer(),acc.getUserName());
-		if(this.manager.getAccounts().size()<1)
-			this.connected= false;
+
+	public void disconnectAccount(AccountInfo acc) {
+		this.manager.disconnect(((acc.getProtocol()==ChatConfigurations.XMPP || acc.getProtocol()==ChatConfigurations.IRC)?acc.getServer():acc.getProtocol().getServer()),
+				acc.getUserName());
+		if (this.manager.getAccounts().size() < 1)
+			this.connected = false;
 	}
+
 	public List<Contact> getContacts() {
 		List<Contact> temp = this.manager.getFriends();
 		Comparator<Contact> c = new Comparator<Contact>() {
 
 			@Override
 			public int compare(Contact o1, Contact o2) {
-				if (o1.getState() == null && o2.getState() == null)
+				if(o1.isOnline() && !o2.isOnline())
+					return 1;
+				else if(o2.isOnline() && !o1.isOnline())
+					return -1;
+			else if (o1.getState() == null && o2.getState() == null)
 					return 0;
 				else if (o1.getState() == null && o2.getState() != null)
 					return -1;
 				else if (o1.getState() != null && o2.getState() == null)
 					return 1;
+				//else if (o)
 
-				return o1.getState().compareTo(o2.getState());
+				if( o1.getState().compareTo(o2.getState())==0)
+					return o1.getIdName().compareTo(o2.getIdName());
+				else return o1.getState().compareTo(o2.getState());
 			}
 		};
 		Collections.sort(temp, c);
@@ -208,27 +237,24 @@ public class ChatController implements Serializable, ChatEventsListener {
 	 * 
 	 * @param ae
 	 *            ignored
-	 * @throws IOException 
-	 * @throws ValidatorException 
-	 * @throws ReadOnlyException 
+	 * @throws IOException
+	 * @throws ValidatorException
+	 * @throws ReadOnlyException
 	 */
 
-	public void connect() throws ReadOnlyException, ValidatorException, IOException {
-		if (this.selectedProtocol != ChatConfigurations.NONE) {
-			this.connected = this.manager.addAccount(this.username,
-					this.password, this, this.selectedProtocol);
-			if(this.saveAccount)
-				this.addToPreferences();
-		} else {
-			if (this.manager.addAccount(this.username, this.password,
-					this.server, 5222, this.service, this))
-				this.connected = true;
+	public void connect() throws ReadOnlyException, ValidatorException,
+			IOException {
+		try {
+				this.connected = this.manager.addAccount(this.username, this.password, this.server, port, this.service,
+						this.selectedProtocol,this);
+				if (this.saveAccount && this.connected)
+					this.addToPreferences();
+		} catch (Exception e) {
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage("Login failed! Check your configuration"));
+			// e.printStackTrace();
 		}
-
-		// this.saveToPreferences();
-
 	}
-
 	public void disconnect() {
 		this.connected = false;
 
@@ -236,19 +262,21 @@ public class ChatController implements Serializable, ChatEventsListener {
 
 	}
 
-	public boolean addAccount() throws ReadOnlyException, ValidatorException, IOException {
-		boolean result = false;
-		if (this.selectedProtocol != ChatConfigurations.NONE){
-			result = this.manager.addAccount(this.username, this.password,
-					this, this.selectedProtocol);
-			if(this.saveAccount && result)
-				this.addToPreferences();
-		}
-		
-		// else
-		// this.connected = true;
-		// TODO add other account
-		return result;
+	public void addAccount() throws ReadOnlyException, ValidatorException,
+			IOException {
+			try {
+				boolean result = this.manager.addAccount(this.username,
+						this.password, this.server, port, this.service,
+						this.selectedProtocol,this);
+				if (this.saveAccount && result)
+					this.addToPreferences();
+			} catch (Exception e) {
+				FacesContext.getCurrentInstance().addMessage(
+						null,
+						new FacesMessage(
+								"Login failed! Check your configuration"));
+				e.printStackTrace();
+			}
 	}
 
 	public void setCurrentConversation(String idname) {
@@ -295,12 +323,17 @@ public class ChatController implements Serializable, ChatEventsListener {
 			if (con.getIdName().compareTo(actualTab) == 0) {
 				this.currentContact = con;
 				this.currentContact.setHasUnreadedMessage(false);
-				//System.out.println("setting actual tab" + con);
+				// System.out.println("setting actual tab" + con);
 				break;
 			}
 		}
 		// this.conversations.g
 
+	}
+	public boolean isIrc(){
+		if(this.currentContact instanceof IrcChannel)
+			return true;
+		return false;
 	}
 
 	/**
@@ -316,57 +349,79 @@ public class ChatController implements Serializable, ChatEventsListener {
 		ret = ret.replaceAll("<", "&lt;");
 		ret = ret.replaceAll(">", "&gt;");
 		// smile
-		ret = ret.replaceAll(":\\)",
-				"<img src=\"/chatportlet/pages/emoticons/smile.png\" />");
-		ret = ret.replaceAll(":-\\)",
-				"<img src=\"/chatportlet/pages/emoticons/smile.png\" />");
+		ret = ret
+				.replaceAll(":\\)",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/smile.png\" />");
+		ret = ret
+				.replaceAll(":-\\)",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/smile.png\" />");
 		// laugh
-		ret = ret.replaceAll(":D",
-				"<img src=\"/chatportlet/pages/emoticons/laugh.png\" />");
-		ret = ret.replaceAll(":-D",
-				"<img src=\"/chatportlet/pages/emoticons/laugh.png\" />");
-		ret = ret.replaceAll(":d",
-				"<img src=\"/chatportlet/pages/emoticons/laugh.png\" />");
-		ret = ret.replaceAll(":-d",
-				"<img src=\"/chatportlet/pages/emoticons/laugh.png\" />");
+		ret = ret
+				.replaceAll(":D",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/laugh.png\" />");
+		ret = ret
+				.replaceAll(":-D",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/laugh.png\" />");
+		ret = ret
+				.replaceAll(":d",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/laugh.png\" />");
+		ret = ret
+				.replaceAll(":-d",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/laugh.png\" />");
 		// angel
-		ret = ret.replaceAll("O:-\\)",
-				"<img src=\"/chatportlet/pages/emoticons/angel.png\" />");
-		ret = ret.replaceAll("O:\\)",
-				"<img src=\"/chatportlet/pages/emoticons/angel.png\" />");
-		ret = ret.replaceAll("o:-\\)",
-				"<img src=\"/chatportlet/pages/emoticons/angel.png\" />");
-		ret = ret.replaceAll("o:\\)",
-				"<img src=\"/chatportlet/pages/emoticons/angel.png\" />");
+		ret = ret
+				.replaceAll("O:-\\)",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/angel.png\" />");
+		ret = ret
+				.replaceAll("O:\\)",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/angel.png\" />");
+		ret = ret
+				.replaceAll("o:-\\)",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/angel.png\" />");
+		ret = ret
+				.replaceAll("o:\\)",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/angel.png\" />");
 		// cool
-		ret = ret.replaceAll("8\\)",
-				"<img src=\"/chatportlet/pages/emoticons/cool.png\" />");
-		ret = ret.replaceAll("8-\\)",
-				"<img src=\"/chatportlet/pages/emoticons/cool.png\" />");
-		ret = ret.replaceAll("B\\)",
-				"<img src=\"/chatportlet/pages/emoticons/cool.png\" />");
-		ret = ret.replaceAll("B-\\)",
-				"<img src=\"/chatportlet/pages/emoticons/cool.png\" />");
+		ret = ret
+				.replaceAll("8\\)",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/cool.png\" />");
+		ret = ret
+				.replaceAll("8-\\)",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/cool.png\" />");
+		ret = ret
+				.replaceAll("B\\)",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/cool.png\" />");
+		ret = ret
+				.replaceAll("B-\\)",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/cool.png\" />");
 		// sad
-		ret = ret.replaceAll(":\\(",
-				"<img src=\"/chatportlet/pages/emoticons/sad.png\" />");
-		ret = ret.replaceAll(":-\\(",
-				"<img src=\"/chatportlet/pages/emoticons/sad.png\" />");
+		ret = ret
+				.replaceAll(":\\(",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/sad.png\" />");
+		ret = ret
+				.replaceAll(":-\\(",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/sad.png\" />");
 		// silly
-		ret = ret.replaceAll(":P",
-				"<img src=\"/chatportlet/pages/emoticons/silly.png\" />");
-		ret = ret.replaceAll(":p",
-				"<img src=\"/chatportlet/pages/emoticons/silly.png\" />");
-		ret = ret.replaceAll(":-P",
-				"<img src=\"/chatportlet/pages/emoticons/silly.png\" />");
-		ret = ret.replaceAll(":-p",
-				"<img src=\"/chatportlet/pages/emoticons/silly.png\" />");
+		ret = ret
+				.replaceAll(":P",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/silly.png\" />");
+		ret = ret
+				.replaceAll(":p",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/silly.png\" />");
+		ret = ret
+				.replaceAll(":-P",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/silly.png\" />");
+		ret = ret
+				.replaceAll(":-p",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/silly.png\" />");
 
 		// kissy
-		ret = ret.replaceAll(":\\*",
-				"<img src=\"/chatportlet/pages/emoticons/kissy.png\" />");
-		ret = ret.replaceAll(":-\\*",
-				"<img src=\"/chatportlet/pages/emoticons/kissy.png\" />");
+		ret = ret
+				.replaceAll(":\\*",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/kissy.png\" />");
+		ret = ret
+				.replaceAll(":-\\*",
+						"<img src=\"/instant-messenger-portlet/pages/emoticons/kissy.png\" />");
 		return ret;
 	}
 
@@ -379,6 +434,28 @@ public class ChatController implements Serializable, ChatEventsListener {
 		} else
 			return inputString;
 	}
+	
+	public void paintAvatar(OutputStream out,Object data){
+		 //if (data instanceof MediaData) {            
+
+	        //    MediaData paintData = (MediaData) data;
+	//	System.out.println(data.getClass());
+				if(currentContact.getAvatar()!=null){
+					
+	            BufferedImage img;
+				try {
+					img = ImageIO.read( new ByteArrayInputStream(currentContact.getAvatar()));
+					 Graphics2D graphics2D = img.createGraphics();
+			            ImageIO.write(img,"png",out);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				}
+	           
+
+	    //    }
+	}
 
 	// ------------------------------------------------------------------
 	// Implementation of ChatEventsListener
@@ -388,7 +465,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 		// this.renderId=new String("message");
 
 		System.out.println("new message from contact :" + c.getName());
-		if (this.manager.getConversations().size() < 1) {
+		if (this.manager.getConversations().size() <= 1) {
 			this.currentContact = c;
 			c.setHasUnreadedMessage(false);
 			conversationsWindowRefresh();
@@ -398,7 +475,6 @@ public class ChatController implements Serializable, ChatEventsListener {
 				&& this.currentContact.getIdName().compareTo(c.getIdName()) == 0) {
 			messageWindowRefresh();
 		}
-
 		else
 			conversationsWindowRefresh();
 	}
@@ -407,18 +483,23 @@ public class ChatController implements Serializable, ChatEventsListener {
 	public void processIncomingChat(Contact c) {
 		// System.out.println("Incoming chat from: ");
 
-		if (this.manager.getConversations().size() < 1) {
+		if (this.manager.getConversations().size() <= 1) {
 			this.currentContact = c;
 			messageWindowRefresh();
 		}
 		conversationsWindowRefresh();
-
 	}
 
 	@Override
 	public void processContactStateChanged(Contact c) {
+		if(this.isIrc())
+			ircContactWindowRefresh();
+		else{
+			if(this.manager.getConversations().contains(c))
+				conversationsWindowRefresh();
 		System.out.println("Status changed: " + c.getIdName());
 		contactWindowRefresh();
+		}
 	}
 
 	@Override
@@ -443,6 +524,8 @@ public class ChatController implements Serializable, ChatEventsListener {
 	}
 
 	// ==================================================================
+	//			PUSH methods
+	//===================================================================
 
 	private void pushTest() {
 		// this.pushWorking=true;
@@ -461,7 +544,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 			getTopicsContext().publish(
 					new TopicKey(CDI_PUSH_TOPIC, this.getUserIdentifier()
 							+ "newmessage"), "sprava");
-			System.out.println("fireMessage ");
+	
 		} catch (MessageException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -472,13 +555,22 @@ public class ChatController implements Serializable, ChatEventsListener {
 		try {
 			getTopicsContext().publish(
 					new TopicKey(CDI_PUSH_TOPIC, this.getUserIdentifier()
-							+ "contact"), "sprava");
+							+ "contact"), null);
 		} catch (MessageException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-
+	private void ircContactWindowRefresh() {
+		try {
+			getTopicsContext().publish(
+					new TopicKey(CDI_PUSH_TOPIC, this.getUserIdentifier()
+							+ "ircContacts"), null);
+		} catch (MessageException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	private void conversationsWindowRefresh() {
 		try {
 			getTopicsContext().publish(
@@ -542,12 +634,17 @@ public class ChatController implements Serializable, ChatEventsListener {
 	public List<Contact> getConversations() {
 		return this.manager.getConversations();
 	}
-
-	public String getPort() {
+	public List<User> getIrcContacts(){
+		if(this.isIrc()){
+			return ((IrcChannel)currentContact).getconnectedUsers();
+		}
+		return null;
+	}
+	public Integer getPort() {
 		return port;
 	}
 
-	public void setPort(String port) {
+	public void setPort(Integer port) {
 		this.port = port;
 	}
 
@@ -560,10 +657,12 @@ public class ChatController implements Serializable, ChatEventsListener {
 	}
 
 	public List<AccountInfo> getStoredAccounts() {
-		if(this.storedAccounts!=null)
-		return this.storedAccounts.accounts();
-		else return null;
+		if (this.storedAccounts != null)
+			return this.storedAccounts.accounts();
+		else
+			return null;
 	}
+
 	public boolean isSaveAccount() {
 		return saveAccount;
 	}
@@ -571,7 +670,9 @@ public class ChatController implements Serializable, ChatEventsListener {
 	public void setSaveAccount(boolean saveAccount) {
 		this.saveAccount = saveAccount;
 	}
+
 	private ChatConfigurations selectedProtocol;
+
 	public ChatConfigurations getSelectedProtocol() {
 		return selectedProtocol;
 	}
@@ -583,9 +684,9 @@ public class ChatController implements Serializable, ChatEventsListener {
 	public ChatConfigurations[] getProtocols() {
 		return protocols;
 	}
+
 	public String getUserIdentifier() {
 		return userIdentifier;
 	}
-
 
 }

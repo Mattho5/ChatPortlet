@@ -5,15 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.ConversationScoped;
-import javax.enterprise.context.SessionScoped;
-import javax.faces.context.FacesContext;
-import javax.inject.Named;
-
 import sk.mattho.portlets.chatPortlet.chat.ChatConfigurations;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatEventsListener;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatInterface;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.Contact;
+import sk.mattho.portlets.chatPortlet.chat.irc.IrcChat;
 import sk.mattho.portlets.chatPortlet.chat.xmpp.XmppChat;
 
 public class ChatManager implements ChatEventsListener, Serializable {
@@ -82,31 +78,51 @@ public class ChatManager implements ChatEventsListener, Serializable {
 		return c;
 	}
 
-	public boolean addAccount(String userName, String password,
-			ChatEventsListener listener, ChatConfigurations con) {
-		if (con == null) {
-			System.out.println("connection is null");
-			return false;
-		} else
-			return this.addAccount(userName, password, con.getServer(),
-					con.getPort(), con.getDomain(), listener);
-	}
+	
 
 	public boolean addAccount(String userName, String password, String server,
-			int port, String serviceName, ChatEventsListener listener) {
-		XmppChat chat = new XmppChat();
-		chat.setServer(server);
-		chat.setServiceName(serviceName);
-		chat.setPort(port);
+			int port, String serviceName,ChatConfigurations con, ChatEventsListener listener) throws Exception {
+		ChatInterface chat;
+		
+		switch(con){
+		case IRC:{
+			chat= new IrcChat();
+			((IrcChat)chat).setIrcChannelName(serviceName);
+			//chat.set
+			chat.setPort(port);
+			chat.setServer(server);
+		}break;
+		case XMPP:{
+			 chat = new XmppChat();
+			 chat.setPort(port);
+			 chat.setServer(server);
+			 ((XmppChat)chat).setServiceName(serviceName);
+		}break;
+		case GTALK:
+		case FACEBOOK_CHAT:{
+			System.out.println("seting gtalk or fb chat server:" +con.getServer()+"port"+con.getPort()+"");
+			chat= new XmppChat();
+			chat.setServer(con.getServer());
+			chat.setPort(con.getPort());
+			((XmppChat)chat).setServiceName(con.getDomain());
+		}break;
+		default: chat= new XmppChat();
+		}
 		chat.setUsername(userName);
 		chat.addListener(this);
 		chat.addListener(listener);
+		System.out.println("connecting "+chat.getServer() );
 		if (chat.connect(userName, password)) {
 			this.accounts.add(chat);
+			if(con==ChatConfigurations.IRC)
+			{
+				this.conversations.addAll(chat.getContacts());
+			}
+		
 			this.friends.addAll(chat.getContacts());
 			return true;
 		}
-		return false;
+		throw new Exception();
 	}
 
 	public void disconnect() {

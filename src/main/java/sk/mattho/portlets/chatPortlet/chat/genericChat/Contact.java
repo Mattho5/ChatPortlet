@@ -15,7 +15,6 @@ public abstract class Contact implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	@Inject
 	private ChatInterface mySession;
 	private String idName;
 	private List<ChatMessage> messagesHistory;
@@ -25,6 +24,15 @@ public abstract class Contact implements Serializable {
 	private String status;
 	private boolean typing;
 	private boolean hasUnreadedMessage;
+	private byte[] avatar;
+
+	public byte[] getAvatar() {
+		return avatar;
+	}
+
+	public void setAvatar(byte[] avatar) {
+		this.avatar = avatar;
+	}
 
 	public boolean isHasUnreadedMessage() {
 		return hasUnreadedMessage;
@@ -72,6 +80,15 @@ public abstract class Contact implements Serializable {
 
 	public List<ChatMessage> getMessagesHistory() {
 		return this.messagesHistory;
+	}
+	
+	public List<ChatMessage> getMessagesHistory(int lenght){
+		int size= this.messagesHistory.size()-1;
+		if(lenght<size){
+			int from=size-lenght;
+		return this.messagesHistory.subList(from, size);
+		}
+		else return this.messagesHistory;
 	}
 
 	public void setMessagesHistory(List<ChatMessage> m) {

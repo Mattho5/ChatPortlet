@@ -33,11 +33,21 @@ Replacing richfaces style
 .rf-tab-hdr-act{
 	background-color: #99FF00 !important;
 	background-image: none;
+	-moz-box-shadow: 1px 1px 1px #A0A0A0;
+-webkit-box-shadow: 1px 1px 1px #A0A0A0 ;
+box-shadow: 1px 1px 1px #A0A0A0 ;
 	
+}
+.rf-tab-hdr-inact{
+	background-image: none;
+	background-color: #F0F0F0  !important;
 }
 .rf-tab-cnt{
 	border-radius: 8px;
 	background-color: white !important;
+	height:80px !important;
+	border: none;
+	
 	
 }
 .rf-tab-hdr-tabs
@@ -97,11 +107,28 @@ rf-p {
 	background-color: #F5FFE0;
 	width: 100%;
 	border: 1px solid #D8D8D8;
-	height: 257px; overflow: auto; 
+	height: 227px; overflow: auto; 
 	border-radius: 8px;
 	color: #404040;
 }
-
+.ircconversation{
+	background-color: #F5FFE0;
+	width :100%;
+	border: 1px solid #D8D8D8;
+	height: 227px; overflow: auto; 
+	border-radius: 8px;
+	color: #404040;
+	float: left;
+}
+.irccontacts{
+	color: #404040;
+	height: 227px;
+	 overflow: auto; 
+	 width: 160px;
+	border-radius: 8px;
+	float: right;
+	border: 1px solid #D8D8D8;
+}
 .lineSpace{
 	width: 100%;
 	height: 5px;
@@ -151,7 +178,13 @@ box-shadow: 2px 2px 2px #A0A0A0 ;
 	text-align: center;
 	
 }
+.photo{
+height: 70px; border-radius: 8px;
+-moz-box-shadow: 2px 2px 2px #A0A0A0;
+-webkit-box-shadow: 2px 2px 2px #A0A0A0 ;
+box-shadow: 2px 2px 2px #A0A0A0 ;
 
+}
 .impanel {
 	height: 500px;
 	border-radius: 10px;
@@ -170,6 +203,10 @@ box-shadow: 5px 5px 5px #A0A0A0 ;
 	height: 400px;
 	overflow: auto;
 	border-radius: 8px;
+	
+}
+
+.irccontacts{
 	
 }
 .newMessage{
