@@ -500,11 +500,12 @@ public class ChatController implements Serializable, ChatEventsListener {
 		if (this.currentContact != null
 				&& this.currentContact.getIdName().compareTo(c.getIdName()) == 0) {
 			messageWindowRefresh();
-		} else
-			if(this.currentContact!=null)
+		} else if(this.currentContact!=null){
+			if(!(c instanceof IrcChannel))
 				conversationsWindowRefresh();
-		{
-			if(!(c instanceof IrcChannel)){
+		}
+		else{
+		if(!(c instanceof IrcChannel)){
 			this.currentContact=c;
 			c.setHasUnreadedMessage(false);
 			fullConversationWindowsRefersh();
