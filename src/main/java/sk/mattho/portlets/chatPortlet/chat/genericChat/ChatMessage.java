@@ -8,7 +8,32 @@ public class ChatMessage implements Serializable{
 	private String from;
 	private String message;
 	private Date date;
+	private boolean saved;
 	
+
+	public ChatMessage(String from, String message, Date date) {
+		super();
+		this.from = from;
+		this.message = message;
+		this.date = date;
+		this.saved=false;
+	}
+	@Override
+	public String toString(){
+		return date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+" "+this.from+": "+this.message;
+	}
+	public String getTime(){
+		return date.getHours()+":"+date.getMinutes()+":"+date.getSeconds();
+	}
+	public void setTime(String s){
+		
+	}
+	public boolean isSaved() {
+		return saved;
+	}
+	public void setSaved(boolean saved) {
+		this.saved = saved;
+	}
 	public ChatMessage(){
 		
 	}
@@ -29,22 +54,6 @@ public class ChatMessage implements Serializable{
 	}
 	public void setDate(Date date) {
 		this.date = date;
-	}
-	public ChatMessage(String from, String message, Date date) {
-		super();
-		this.from = from;
-		this.message = message;
-		this.date = date;
-	}
-	@Override
-	public String toString(){
-		return date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+" "+this.from+": "+this.message;
-	}
-	public String getTime(){
-		return date.getHours()+":"+date.getMinutes()+":"+date.getSeconds();
-	}
-	public void setTime(String s){
-		
 	}
 	
 

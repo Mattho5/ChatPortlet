@@ -113,7 +113,11 @@
 						execute="#{chatController.setPushWorking(true)}"
 						render="pushState" />
 				</a4j:push>
-				
+				<a4j:push
+				address="#{chatController.userIdentifier}messageConversation@imService"
+					onerror="alert(event.rf.data)">
+					<a4j:ajax event="dataavailable" render="messages" />
+				</a4j:push>
 				<a4j:push
 					address="#{chatController.userIdentifier}ircContacts@imService"
 					onerror="alert(event.rf.data)">
@@ -135,15 +139,15 @@
  ======================= -->
 						<rich:panel id="messages"
 							rendered="#{chatController.connected == true}"
-							style=" width: 100%; background-color:white;border:none">
+							style=" width: 100%;max-width: 685px; background-color:white;border:none; overflow:auto;">
 							<a4j:outputPanel id="conversations" title="messages"
 								style=" width: 100%; overflow: auto;  border: none; background-color:white;">
-								<rich:tabPanel switchType="ajax"
+								<rich:tabPanel id="conversationsTabPanel" switchType="client"
 									activeItem="#{chatController.actualTab}"
 									rendered="#{chatController.conversations.size()>0}"
 									style="background-color:white;  height: 100px; ">
-									<a4j:ajax event="itemchange" onerror="handleAjaxError"
-										render="messageList, messageinput" />
+									<a4j:ajax event="itemchange" onerror="handleAjaxError" 
+										render="messageList, messageinput, conversationsTabPanel" />
 									<a4j:repeat value="#{chatController.conversations}"
 										var="conver" varStatus="status">
 										<rich:tab name="#{conver.idName}" style="  border:none  ">
@@ -151,7 +155,7 @@
 												<!-- CONVERSATION TAB HEADER  -->
 												<h:panelGrid columns="3">
 												<h:graphicImage value="state/available.png"
-													rendered="#{conver.state=='AVAILABLE' || conver.state == null}"
+													rendered="#{(conver.state=='AVAILABLE' || conver.state == null) and conver.online == true }"
 													style="float:left; " />
 
 												<h:graphicImage value="state/away.png"
@@ -175,17 +179,19 @@
 											<table >
 												<tr>
 												<td>
-												<a4j:mediaOutput element="img" cacheable="false" session="true"
+												<a4j:outputPanel id="contactPhoto">
+												<a4j:mediaOutput  element="img" cacheable="false" session="true"
 											createContent="#{chatController.paintAvatar}" 
        									   mimeType="image/jpeg" styleClass="photo"/>
+       									   </a4j:outputPanel>
 												</td>
 													<td>
-													<h:outputText value="#{conver.name}" /><BR />
+													<h:outputText value="#{conver.name}" style="font-size:130%; color: #669900;"/><BR />
 													<h:outputText value="ID : #{conver.idName}" /><BR />											
 													<h:outputText value="STATE : #{conver.state}" />
 													
 													</td>
-													<td>
+													<td style="width: 50%">
 													<h:outputText value="#{conver.status}" />
 													</td>
 												</tr>
@@ -196,8 +202,8 @@
 								</rich:tabPanel>
 							</a4j:outputPanel>
 							<rich:panel rendered="#{chatController.conversations.size()>0}"
-									style="background-color:white; border:none ">
-							<a4j:outputPanel id="messageList">
+									style="background-color:white; border:none " >
+							<a4j:outputPanel id="messageList" rendered="#{chatController.conversations.size()>0}">
 								
 
 									<script>
@@ -293,6 +299,7 @@
 										<a4j:commandButton id="sendButton" value="send"
 								action="#{chatController.currentContact.sendMessage()}"
 								render="messageinput" />
+								<a4j:commandLink value="load history" action="#{chatController.loadHistory()}" />
 									</a4j:outputPanel>
 								</rich:panel>
 	

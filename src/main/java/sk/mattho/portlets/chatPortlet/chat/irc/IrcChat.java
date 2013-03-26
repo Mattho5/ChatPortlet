@@ -137,7 +137,8 @@ public class IrcChat extends ChatInterface {
 	
 	@Override
 	public Contact findContactByIdName(String idName) {
-		// TODO Auto-generated method stub
+		if(idName.compareTo(this.ircChannelName)==0)
+			return this.ircChannel;
 		return null;
 	}
 

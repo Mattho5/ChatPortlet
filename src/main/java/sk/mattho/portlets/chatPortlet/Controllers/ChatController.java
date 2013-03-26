@@ -58,6 +58,7 @@ import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatInterface;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.Contact;
 import sk.mattho.portlets.chatPortlet.chat.irc.IrcChannel;
 import sk.mattho.portlets.chatPortlet.chat.xmpp.XmppContact;
+import sk.mattho.portlets.chatPortlet.model.DBContact;
 
 /**
  * {@link ChatController} is the JSF backing bean for the application, holding
@@ -70,6 +71,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 	private boolean pushWorking;
 
 	private Contact currentContact;
+	private List<Contact> onlineContacts;
 	private String username;
 	private String service;
 	private String password;
@@ -90,18 +92,23 @@ public class ChatController implements Serializable, ChatEventsListener {
 
 	@Inject
 	private ChatManager manager;
+
+	@Inject
+	private DBController db;
 	private static final long serialVersionUID = -6239437588285327644L;
 
 	@PostConstruct
 	public void postContruct() {
 		this.connected = false;
-		this.username="";
-		this.selectedProtocol=ChatConfigurations.XMPP;
-		this.port=0;
-		this.server="";
-		this.password="";
-		this.service="";
+		this.username = "";
+		this.selectedProtocol = ChatConfigurations.XMPP;
+		this.port = 0;
+		this.server = "";
+		this.password = "";
+		this.service = "";
 		this.protocols = ChatConfigurations.values();
+
+		// db.saveDbContact(d);
 		// return "login";
 
 	}
@@ -118,12 +125,12 @@ public class ChatController implements Serializable, ChatEventsListener {
 			for (AccountInfo a : pr.accounts()) {
 				try {
 					if (this.manager.addAccount(a.getUserName(),
-							a.getPassword(),a.getServer(), a.getPort(), a.getDomain(),
-							a.getProtocol(),this))
+							a.getPassword(), a.getServer(), a.getPort(),
+							a.getDomain(), a.getProtocol(), this))
 						this.connected = true;
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
-					 e.printStackTrace();
+					e.printStackTrace();
 				}
 			}
 		} else
@@ -155,7 +162,8 @@ public class ChatController implements Serializable, ChatEventsListener {
 		PreferencesAccounts pr = this.getFromPreferences();
 		if (pr == null)
 			pr = new PreferencesAccounts();
-		AccountInfo prefAccount=new AccountInfo(username, password, selectedProtocol);
+		AccountInfo prefAccount = new AccountInfo(username, password,
+				selectedProtocol);
 		prefAccount.setDomain(service);
 		prefAccount.setServer(server);
 		prefAccount.setPort(port);
@@ -173,14 +181,15 @@ public class ChatController implements Serializable, ChatEventsListener {
 			PortletPreferences p = actionReq.getPreferences();
 			String temp = "";
 			temp = p.getValue("accounts", temp);
-		
+
 			if (temp != null && temp.compareTo("") != 0) {
 				PreferencesAccounts pr = new PreferencesAccounts(temp);
 				return pr;
 
 			} else {
 				FacesContext.getCurrentInstance().addMessage(null,
-						new FacesMessage("You haven't saved any account"));;
+						new FacesMessage("You haven't saved any account"));
+				;
 				this.storedAccounts = new PreferencesAccounts();
 			}
 			return null;
@@ -197,38 +206,43 @@ public class ChatController implements Serializable, ChatEventsListener {
 	}
 
 	public void disconnectAccount(AccountInfo acc) {
-		this.manager.disconnect(((acc.getProtocol()==ChatConfigurations.XMPP || acc.getProtocol()==ChatConfigurations.IRC)?acc.getServer():acc.getProtocol().getServer()),
-				acc.getUserName());
+		this.manager.disconnect(
+				((acc.getProtocol() == ChatConfigurations.XMPP || acc
+						.getProtocol() == ChatConfigurations.IRC) ? acc
+						.getServer() : acc.getProtocol().getServer()), acc
+						.getUserName());
 		if (this.manager.getAccounts().size() < 1)
 			this.connected = false;
 	}
 
-	public List<Contact> getContacts() {
-		List<Contact> temp = this.manager.getFriends();
+	public void initContacts() {
+		this.onlineContacts=this.manager.getOnlineFriends();
 		Comparator<Contact> c = new Comparator<Contact>() {
 
 			@Override
 			public int compare(Contact o1, Contact o2) {
-				if(o1.isOnline() && !o2.isOnline())
-					return 1;
-				else if(o2.isOnline() && !o1.isOnline())
-					return -1;
-			else if (o1.getState() == null && o2.getState() == null)
+
+				if (o1.getState() == null && o2.getState() == null)
 					return 0;
 				else if (o1.getState() == null && o2.getState() != null)
 					return -1;
 				else if (o1.getState() != null && o2.getState() == null)
 					return 1;
-				//else if (o)
+				// else if (o)
 
-				if( o1.getState().compareTo(o2.getState())==0)
+				if (o1.getState().compareTo(o2.getState()) == 0)
 					return o1.getIdName().compareTo(o2.getIdName());
-				else return o1.getState().compareTo(o2.getState());
+				else
+					return o1.getState().compareTo(o2.getState());
 			}
 		};
-		Collections.sort(temp, c);
-		return temp;
+		Collections.sort(this.onlineContacts, c);
+	//	return this.onlineContacts;
 
+		
+	}
+	public List<Contact> getContacts(){
+		return this.onlineContacts;
 	}
 
 	/**
@@ -245,38 +259,40 @@ public class ChatController implements Serializable, ChatEventsListener {
 	public void connect() throws ReadOnlyException, ValidatorException,
 			IOException {
 		try {
-				this.connected = this.manager.addAccount(this.username, this.password, this.server, port, this.service,
-						this.selectedProtocol,this);
-				if (this.saveAccount && this.connected)
-					this.addToPreferences();
+			this.connected = this.manager.addAccount(this.username,
+					this.password, this.server, port, this.service,
+					this.selectedProtocol, this);
+			if (this.saveAccount && this.connected)
+				this.addToPreferences();
 		} catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage(null,
 					new FacesMessage("Login failed! Check your configuration"));
 			// e.printStackTrace();
 		}
 	}
+
 	public void disconnect() {
 		this.connected = false;
-
+		for(Contact c:this.manager.getConversations()){
+			this.saveHistory(c);
+		}
 		this.manager.disconnect();
 
 	}
 
 	public void addAccount() throws ReadOnlyException, ValidatorException,
 			IOException {
-			try {
-				boolean result = this.manager.addAccount(this.username,
-						this.password, this.server, port, this.service,
-						this.selectedProtocol,this);
-				if (this.saveAccount && result)
-					this.addToPreferences();
-			} catch (Exception e) {
-				FacesContext.getCurrentInstance().addMessage(
-						null,
-						new FacesMessage(
-								"Login failed! Check your configuration"));
-				e.printStackTrace();
-			}
+		try {
+			boolean result = this.manager.addAccount(this.username,
+					this.password, this.server, port, this.service,
+					this.selectedProtocol, this);
+			if (this.saveAccount && result)
+				this.addToPreferences();
+		} catch (Exception e) {
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage("Login failed! Check your configuration"));
+			e.printStackTrace();
+		}
 	}
 
 	public void setCurrentConversation(String idname) {
@@ -286,7 +302,14 @@ public class ChatController implements Serializable, ChatEventsListener {
 	public void newConversation(Contact contact) {
 		this.setActualTab(contact.getIdName());
 		this.currentContact = contact;
-		this.manager.newConversation(contact);
+		// if contact is succesfully added
+		if (this.manager.newConversation(contact)) {
+			// if is contact for xmpp
+		//	if (contact instanceof XmppContact) {
+		//		db.initContact((XmppContact) contact);
+	//	}
+		}
+
 		messageWindowRefresh();
 	}
 
@@ -301,7 +324,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 	public void exitConversation() {
 		String conv = (FacesContext.getCurrentInstance().getExternalContext()
 				.getRequestParameterMap().get("current"));
-		this.manager.exitConversation(conv);
+		Contact c= this.manager.exitConversation(conv);
 		if (this.manager.getConversations().size() > 0) {
 			this.currentContact = this.manager.getConversations().get(0);
 			this.actualTab = currentContact.getIdName();
@@ -309,12 +332,17 @@ public class ChatController implements Serializable, ChatEventsListener {
 			this.currentContact = null;
 			this.actualTab = "";
 		}
+		this.saveHistory(c);
 	}
 
 	public Date getDate() {
 		return new Date();
 	}
 
+	public void saveHistory(Contact c){
+		if(c instanceof XmppContact)
+			db.saveHistory((XmppContact) c);
+	}
 	public void setActualTab(String actualTab) {
 		// find in conversations
 		// Contact c=null;
@@ -330,8 +358,14 @@ public class ChatController implements Serializable, ChatEventsListener {
 		// this.conversations.g
 
 	}
-	public boolean isIrc(){
-		if(this.currentContact instanceof IrcChannel)
+	public void loadHistory(){
+		if(this.currentContact !=null && this.currentContact instanceof XmppContact)
+		db.loadHistory((XmppContact) this.currentContact);
+		messageWindowRefresh();
+	}
+	
+	public boolean isIrc() {
+		if (this.currentContact instanceof IrcChannel)
 			return true;
 		return false;
 	}
@@ -434,27 +468,27 @@ public class ChatController implements Serializable, ChatEventsListener {
 		} else
 			return inputString;
 	}
-	
-	public void paintAvatar(OutputStream out,Object data){
-		 //if (data instanceof MediaData) {            
 
-	        //    MediaData paintData = (MediaData) data;
-	//	System.out.println(data.getClass());
-				if(currentContact.getAvatar()!=null){
-					
-	            BufferedImage img;
-				try {
-					img = ImageIO.read( new ByteArrayInputStream(currentContact.getAvatar()));
-					 Graphics2D graphics2D = img.createGraphics();
-			            ImageIO.write(img,"png",out);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				}
-	           
+	public void paintAvatar(OutputStream out, Object data) {
+		// if (data instanceof MediaData) {
 
-	    //    }
+		// MediaData paintData = (MediaData) data;
+		// System.out.println(data.getClass());
+		if (currentContact.getAvatar() != null) {
+
+			BufferedImage img;
+			try {
+				img = ImageIO.read(new ByteArrayInputStream(currentContact
+						.getAvatar()));
+				Graphics2D graphics2D = img.createGraphics();
+				ImageIO.write(img, "png", out);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		// }
 	}
 
 	// ------------------------------------------------------------------
@@ -462,21 +496,20 @@ public class ChatController implements Serializable, ChatEventsListener {
 	// --------- ---------------------------------------------------------
 	@Override
 	public void processMessage(Contact c) {
-		// this.renderId=new String("message");
-
-		System.out.println("new message from contact :" + c.getName());
-		if (this.manager.getConversations().size() <= 1) {
-			this.currentContact = c;
-			c.setHasUnreadedMessage(false);
-			conversationsWindowRefresh();
-			messageWindowRefresh();
-
-		} else if (this.currentContact != null
+	
+		if (this.currentContact != null
 				&& this.currentContact.getIdName().compareTo(c.getIdName()) == 0) {
 			messageWindowRefresh();
+		} else
+			if(this.currentContact!=null)
+				conversationsWindowRefresh();
+		{
+			if(!(c instanceof IrcChannel)){
+			this.currentContact=c;
+			c.setHasUnreadedMessage(false);
+			fullConversationWindowsRefersh();
 		}
-		else
-			conversationsWindowRefresh();
+		}
 	}
 
 	@Override
@@ -485,20 +518,23 @@ public class ChatController implements Serializable, ChatEventsListener {
 
 		if (this.manager.getConversations().size() <= 1) {
 			this.currentContact = c;
-			messageWindowRefresh();
+			fullConversationWindowsRefersh();
 		}
-		conversationsWindowRefresh();
+		else conversationsWindowRefresh();
 	}
 
 	@Override
 	public void processContactStateChanged(Contact c) {
-		if(this.isIrc())
+		this.initContacts();
+		//ifsomebody has loged in
+		if (this.isIrc())
 			ircContactWindowRefresh();
-		else{
-			if(this.manager.getConversations().contains(c))
+		else {
+			if (this.manager.getConversations().contains(c))
 				conversationsWindowRefresh();
-		System.out.println("Status changed: " + c.getIdName());
-		contactWindowRefresh();
+			System.out.println("Status changed: " + c.getIdName());
+			
+			contactWindowRefresh();
 		}
 	}
 
@@ -524,8 +560,8 @@ public class ChatController implements Serializable, ChatEventsListener {
 	}
 
 	// ==================================================================
-	//			PUSH methods
-	//===================================================================
+	// PUSH methods
+	// ===================================================================
 
 	private void pushTest() {
 		// this.pushWorking=true;
@@ -544,7 +580,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 			getTopicsContext().publish(
 					new TopicKey(CDI_PUSH_TOPIC, this.getUserIdentifier()
 							+ "newmessage"), "sprava");
-	
+
 		} catch (MessageException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -561,6 +597,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 			e.printStackTrace();
 		}
 	}
+
 	private void ircContactWindowRefresh() {
 		try {
 			getTopicsContext().publish(
@@ -571,6 +608,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 			e.printStackTrace();
 		}
 	}
+
 	private void conversationsWindowRefresh() {
 		try {
 			getTopicsContext().publish(
@@ -580,6 +618,17 @@ public class ChatController implements Serializable, ChatEventsListener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	private void fullConversationWindowsRefersh(){
+		try {
+			getTopicsContext().publish(
+					new TopicKey(CDI_PUSH_TOPIC, this.getUserIdentifier()
+							+ "messageConversation"), "sprava");
+		} catch (MessageException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	
 	}
 
 	// ============================================================================
@@ -634,12 +683,14 @@ public class ChatController implements Serializable, ChatEventsListener {
 	public List<Contact> getConversations() {
 		return this.manager.getConversations();
 	}
-	public List<User> getIrcContacts(){
-		if(this.isIrc()){
-			return ((IrcChannel)currentContact).getconnectedUsers();
+
+	public List<User> getIrcContacts() {
+		if (this.isIrc()) {
+			return ((IrcChannel) currentContact).getconnectedUsers();
 		}
 		return null;
 	}
+
 	public Integer getPort() {
 		return port;
 	}

@@ -2,6 +2,9 @@ package sk.mattho.portlets.chatPortlet.chat.xmpp;
 
 import java.util.Date;
 
+
+import javax.inject.Named;
+
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.MessageListener;
@@ -9,10 +12,11 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.richfaces.application.push.MessageException;
-
 import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatMessage;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.Contact;
+import sk.mattho.portlets.chatPortlet.model.DBContact;
 
+@Named
 public class XmppContact extends Contact {
 	/**
 	 * 
@@ -23,6 +27,7 @@ public class XmppContact extends Contact {
 	private String presenceFrom;
 	private RosterEntry rosterEntry;
 
+	
 	public RosterEntry getRosterEntry() {
 		return rosterEntry;
 	}
@@ -133,12 +138,16 @@ public class XmppContact extends Contact {
 
 	@Override
 	public void beginConversation() {
+	//	if(this.db==null)
+		//	this.db= new DBController();
+		
 		// TODO Auto-generated method stub
+	
+	//	}		
 		if (this.chat == null)
 			this.initChat();
 
 	}
-
 	@Override
 	public void endConversation() {
 	//	this.chat.getListeners().clear();

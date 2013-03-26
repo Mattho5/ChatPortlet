@@ -30,7 +30,6 @@ public class PreferencesAccounts {
 			this.accounts.add(new AccountInfo(encryptor.decrypt(accString)));
 		}
 	}
-		
 	
 	public List<AccountInfo> accounts(){
 		return accounts;

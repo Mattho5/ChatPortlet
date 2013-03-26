@@ -5,12 +5,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.inject.Inject;
+
+import sk.mattho.portlets.chatPortlet.Controllers.DBController;
 import sk.mattho.portlets.chatPortlet.chat.ChatConfigurations;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatEventsListener;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatInterface;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.Contact;
+import sk.mattho.portlets.chatPortlet.chat.irc.IrcChannel;
 import sk.mattho.portlets.chatPortlet.chat.irc.IrcChat;
 import sk.mattho.portlets.chatPortlet.chat.xmpp.XmppChat;
+import sk.mattho.portlets.chatPortlet.model.DBContact;
 
 public class ChatManager implements ChatEventsListener, Serializable {
 
@@ -21,6 +27,7 @@ public class ChatManager implements ChatEventsListener, Serializable {
 	private List<ChatInterface> accounts;
 	private List<Contact> conversations;
 	private List<Contact> friends;
+
 	
 
 	@PostConstruct
@@ -29,6 +36,7 @@ public class ChatManager implements ChatEventsListener, Serializable {
 		this.accounts = new ArrayList<ChatInterface>();
 		this.conversations = new ArrayList<Contact>();
 		this.friends = new ArrayList<Contact>();
+		
 	}
 
 	public void addChatListener(ChatEventsListener listener) {
@@ -47,18 +55,18 @@ public class ChatManager implements ChatEventsListener, Serializable {
 	 * @param contact
 	 *            - contact to conversation start with
 	 */
-	public void newConversation(Contact contact) {
+	public boolean newConversation(Contact contact) {
 		if (this.conversations.contains(contact))
-			System.out.println(contact + "already exist!");
+			//System.out.println(contact + "already exist!");
+			return false;
 		else {
 			this.conversations.add(contact);
 			contact.beginConversation();
-			System.out.println("" + contact.getIdName()
-					+ " added succesfully into conversations");
+			return true;
 		}
 	}
 
-	public void exitConversation(String convName) {
+	public Contact exitConversation(String convName) {
 
 		Contact c = this.findContactByIdName(convName);
 		if (c != null) {
@@ -66,6 +74,7 @@ public class ChatManager implements ChatEventsListener, Serializable {
 			this.conversations.remove(c);
 			System.out.print("Removed from conversations: " + convName);
 		}
+		return c;
 	}
 
 	private Contact findContactByIdName(String convName) {
@@ -83,6 +92,7 @@ public class ChatManager implements ChatEventsListener, Serializable {
 	public boolean addAccount(String userName, String password, String server,
 			int port, String serviceName,ChatConfigurations con, ChatEventsListener listener) throws Exception {
 		ChatInterface chat;
+
 		
 		switch(con){
 		case IRC:{
@@ -116,7 +126,8 @@ public class ChatManager implements ChatEventsListener, Serializable {
 			this.accounts.add(chat);
 			if(con==ChatConfigurations.IRC)
 			{
-				this.conversations.addAll(chat.getContacts());
+				//TODO adding ircchannel direct into conversations
+			//	this.conversations.addAll(chat.getContacts());
 			}
 		
 			this.friends.addAll(chat.getContacts());
@@ -158,10 +169,11 @@ public class ChatManager implements ChatEventsListener, Serializable {
 	// -----------------------------------------------------------
 	@Override
 	public void processMessage(Contact c) {
-		if (this.conversations.size() < 1) {
-			this.conversations.add(c);
+		//if (this.conversations.size() < 1) {
+		//	this.conversations.add(c);
 
-		} else if (!this.conversations.contains(c))
+	//	} else 
+			if (!this.conversations.contains(c))
 			this.conversations.add(c);
 	}
 
@@ -226,6 +238,17 @@ public class ChatManager implements ChatEventsListener, Serializable {
 
 	public List<ChatInterface> getAccounts() {
 		return accounts;
+	}
+	public List<Contact> getOnlineFriends(){
+		List<Contact> res= new ArrayList<Contact>();
+		for(Contact c:this.friends){
+			if(c instanceof IrcChannel)
+				res.add(c);
+			else if(c.isOnline())
+				res.add(c);
+				
+		}
+		return res;
 	}
 
 }

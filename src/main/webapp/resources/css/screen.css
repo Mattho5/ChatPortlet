@@ -114,6 +114,7 @@ rf-p {
 .ircconversation{
 	background-color: #F5FFE0;
 	width :100%;
+	
 	border: 1px solid #D8D8D8;
 	height: 227px; overflow: auto; 
 	border-radius: 8px;
