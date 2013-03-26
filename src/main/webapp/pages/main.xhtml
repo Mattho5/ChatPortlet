@@ -175,7 +175,7 @@
 														onclick="exitConversation('#{conver.idName}'); Event.stop(event);" />
 												</h:panelGrid>
 											</f:facet>
-											
+											<a4j:outputPanel rendered="#{!chatController.irc}">
 											<table >
 												<tr>
 												<td>
@@ -187,7 +187,7 @@
 												</td>
 													<td>
 													<h:outputText value="#{conver.name}" style="font-size:130%; color: #669900;"/><BR />
-													<h:outputText value="ID : #{conver.idName}" /><BR />											
+													<h:outputText value="ID : #{chatController.subString(30,conver.idName)}" /><BR />											
 													<h:outputText value="STATE : #{conver.state}" />
 													
 													</td>
@@ -196,7 +196,11 @@
 													</td>
 												</tr>
 											</table>
-											
+											</a4j:outputPanel>
+											<a4j:outputPanel rendered="#{chatController.irc}">
+											 <h:outputText value="#{conver.name}" style="font-size:130%; color: #669900;"/><BR />
+													<h:outputText value="#{conver.mySession.server}" /><BR />	
+											</a4j:outputPanel>
 										</rich:tab>
 									</a4j:repeat>
 								</rich:tabPanel>
@@ -324,7 +328,7 @@
 									<a4j:repeat value="#{chatController.contacts}" var="contact">
 										<rich:panelMenuItem
 											action="#{chatController.newConversation(contact)}"
-											rendered="#{contact.online}" styleClass="contact"
+											 styleClass="contact"
 											render="messages">
 											<div class="contactDiv">
 												<h:graphicImage value="state/available.png"
@@ -337,7 +341,7 @@
 													rendered="#{contact.state=='DND'}" style="float:left " />
 
 												<h:outputText
-													value="#{( contact.name == null ) ? chatController.subString(20,contact.idName) : chatController.subString(15,contact.name)} "
+													value="#{( contact.name == null ) ? chatController.subString(15,contact.idName) : chatController.subString(15,contact.name)} "
 													style="font-size: 110% ; font-style: normal; text-align:center" />
 												<br />
 												<h:outputText

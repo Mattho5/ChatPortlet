@@ -213,6 +213,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 						.getUserName());
 		if (this.manager.getAccounts().size() < 1)
 			this.connected = false;
+		this.onlineContacts.clear();
 	}
 
 	public void initContacts() {
@@ -501,8 +502,9 @@ public class ChatController implements Serializable, ChatEventsListener {
 				&& this.currentContact.getIdName().compareTo(c.getIdName()) == 0) {
 			messageWindowRefresh();
 		} else if(this.currentContact!=null){
-			if(!(c instanceof IrcChannel))
+			if(!(c instanceof IrcChannel)){
 				conversationsWindowRefresh();
+			}
 		}
 		else{
 		if(!(c instanceof IrcChannel)){
@@ -549,6 +551,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 	@Override
 	public void disconnected(ChatInterface chatSession) {
 		//
+		this.onlineContacts.clear();
 		this.contactWindowRefresh();
 		this.messageWindowRefresh();
 

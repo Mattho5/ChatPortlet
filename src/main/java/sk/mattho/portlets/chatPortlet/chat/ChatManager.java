@@ -173,7 +173,7 @@ public class ChatManager implements ChatEventsListener, Serializable {
 		//	this.conversations.add(c);
 
 	//	} else 
-			if (!this.conversations.contains(c))
+			if (!this.conversations.contains(c)&& !(c instanceof IrcChannel))
 			this.conversations.add(c);
 	}
 

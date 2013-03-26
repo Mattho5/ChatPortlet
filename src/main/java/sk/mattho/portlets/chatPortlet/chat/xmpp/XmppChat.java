@@ -17,7 +17,9 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.Presence.Type;
 import org.jivesoftware.smackx.packet.VCard;
+import org.jivesoftware.smackx.pubsub.PresenceState;
 
 import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatInterface;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.Contact;
@@ -167,6 +169,8 @@ public class XmppChat extends ChatInterface {
 			this.connection.login(name, password);
 			System.out.println("Logged in as " + connection.getUser());
 			this.connection.getRoster().addRosterListener(rosterListener);
+			Presence p = new Presence(Type.available);
+			this.connection.sendPacket(p);
 		//	
 			this.InitContacts();
 			Thread.sleep(2000);
