@@ -18,9 +18,10 @@
 		<portlet-name>ChatPortlet</portlet-name>
 		<display-name>IM portlet</display-name>
 		<portlet-class>javax.portlet.faces.GenericFacesPortlet</portlet-class>
+		
 		<init-param>
 			<name>javax.portlet.faces.defaultViewId.view</name>
-			<value>/pages/main.xhtml</value>
+			<value>/pages/chatPortlet.xhtml</value>
 		</init-param>
 		<init-param>
 			<name>javax.portlet.faces.defaultViewId.edit</name>

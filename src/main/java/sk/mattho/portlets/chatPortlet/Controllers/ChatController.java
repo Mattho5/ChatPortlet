@@ -586,7 +586,6 @@ public class ChatController implements Serializable, ChatEventsListener {
 							+ "newmessage"), "sprava");
 
 		} catch (MessageException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -597,7 +596,6 @@ public class ChatController implements Serializable, ChatEventsListener {
 					new TopicKey(CDI_PUSH_TOPIC, this.getUserIdentifier()
 							+ "contact"), null);
 		} catch (MessageException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -608,7 +606,6 @@ public class ChatController implements Serializable, ChatEventsListener {
 					new TopicKey(CDI_PUSH_TOPIC, this.getUserIdentifier()
 							+ "ircContacts"), null);
 		} catch (MessageException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

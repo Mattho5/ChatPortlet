@@ -14,6 +14,7 @@ import org.pircbotx.exception.IrcException;
 import org.pircbotx.exception.NickAlreadyInUseException;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatInterface;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.Contact;
+import sk.mattho.portlets.chatPortlet.chat.genericChat.ContactState;
 
 
 public class IrcChat extends ChatInterface {
@@ -162,8 +163,12 @@ public class IrcChat extends ChatInterface {
 	}
 	
 	public void notifyMessage() {
-		// TODO Auto-generated method stub
 		this.notifyMessage(this.ircChannel);
+	}
+	@Override
+	public void setStatus(ContactState state, String textStatus) {
+		// Do nothing
+		
 	} 
 	
 

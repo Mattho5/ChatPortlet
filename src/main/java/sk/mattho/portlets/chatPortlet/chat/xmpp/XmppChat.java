@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.PreDestroy;
+import javax.jws.WebParam.Mode;
 
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManagerListener;
@@ -319,6 +320,25 @@ public class XmppChat extends ChatInterface {
 				return c;
 		}
 		return null;
+	}
+	@Override
+	public void setStatus(ContactState state, String textStatus) {
+		Presence p=new Presence(Type.available);
+		switch(state){
+		case AVAILABLE:
+			p.setMode(org.jivesoftware.smack.packet.Presence.Mode.available);
+			break;
+		case AWAY:
+			p.setMode(org.jivesoftware.smack.packet.Presence.Mode.away);
+			break;
+		case DND:
+			p.setMode(org.jivesoftware.smack.packet.Presence.Mode.dnd);
+			break;
+		}
+		p.setStatus(textStatus);
+		//this.connection.
+		this.connection.sendPacket(p);
+		
 	}
 
 }

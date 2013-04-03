@@ -28,6 +28,7 @@ public abstract class ChatInterface implements Serializable {
 	public abstract boolean deleteContact();
 	public abstract Contact findContactByIdName(String idName);
 	public abstract boolean addContact(Contact toAdd);
+	public abstract void setStatus(ContactState state,String textStatus);
 	public void addListener(ChatEventsListener listener){
 		if(this.eventsListeners==null)
 			this.eventsListeners= new ArrayList<ChatEventsListener>();

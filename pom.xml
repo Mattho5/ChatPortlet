@@ -4,10 +4,10 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>sk.mattho.portlets</groupId>
   <artifactId>instant-messenger-portlet</artifactId>
-  <version>3.5.0.Final</version>
+  <version>0.5.Alpha</version>
   <packaging>war</packaging>
   <name>Instant Messenger Portlet</name>
-  <description>A simple portlet using JavaServer Faces 2.1 and RichFaces 4.2.</description>
+  <description>XMPP and IRC Instant Messenger</description>
   <url>http://www.gatein.org</url>
   <licenses>
     <license>
@@ -88,7 +88,6 @@
     <dependency>
       <groupId>javax.inject</groupId>
       <artifactId>javax.inject</artifactId>
-      <version>1</version>
     </dependency>
     <dependency>
       <groupId>org.gatein</groupId>
