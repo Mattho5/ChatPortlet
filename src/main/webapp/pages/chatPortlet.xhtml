@@ -1,5 +1,4 @@
-
-<f:view xmlns="http://www.w3.org/1999/xhtml"
+<f:view xmlns="http://www.w3.org/1999/xhtml"	
 	xmlns:f="http://java.sun.com/jsf/core"
 	xmlns:h="http://java.sun.com/jsf/html"
 	xmlns:c="http://java.sun.com/jsp/jstl/core"
@@ -60,7 +59,7 @@
 										value="#{chatController.port}" /></td>
 							</tr>
 							<tr>
-							
+
 								<td><h:outputLabel value="Channel" for="domain"
 										rendered="#{chatController.selectedProtocol== 'IRC'}" />
 								<h:outputLabel value="Domain" rendered="#{chatController.selectedProtocol== 'XMPP'}" /></td>
@@ -69,28 +68,32 @@
 							</tr>
 						</a4j:outputPanel>
 						<tr>
-							<td>Save Account<h:selectBooleanCheckbox
+							<td>Save Account</td>
+							<td><h:selectBooleanCheckbox
 									value="#{chatController.saveAccount}" title="Save account"
-									label="Save account" /></td>
-							<td><h:commandButton value="connect"
-									onclick="  $('.loading').show()"
-									action="#{chatController.connect()}" type="submit" /> <h:commandButton
-									value="connectfromPref"
-									action="#{chatController.initFromPreferences()}"
-									onclick="#{rich:element('loadingImage')}.show()" type="submit" /></td>
-
-
+									label="Save account" /></td>	
 						</tr>
-
+					<tr>
+					<td>
+					 <h:commandButton value="connect" styleClass="button"
+									onclick="  $('.loading').show()"
+									action="#{chatController.connect()}" type="submit" />
+									</td><td>
+									<h:commandButton 
+									value="use stored accounts"   onclick="  $('.loading').show()"
+									action ="#{chatController.initFromPreferences()}" styleClass="button"
+									 />
+					</td>
+					</tr>	
 					</table>
 					<rich:messages style="color:red" />
 					<h:graphicImage id="loadingImage" styleClass="loading" value="images/loader.gif"
-						style="display:none; margin: auto;" />
+						style="display:none; margin: 0px  auto;" />
 				</h:form>
 
 			</rich:panel>
 			<!--=======================
-			      
+			  PUSH COMPONENTS    
 		 =======================  -->
 			<h:form>
 				<a4j:push
@@ -144,7 +147,7 @@
 							style=" width: 100%;max-width: 685px; background-color:white;border:none; overflow:auto;">
 							<a4j:outputPanel id="conversations" title="messages"
 								style=" width: 100%; overflow: auto;  border: none; background-color:white;">
-								<rich:tabPanel id="conversationsTabPanel" switchType="client"
+								<rich:tabPanel id="conversationsTabPanel" switchType="ajax"
 									activeItem="#{chatController.actualTab}"
 									rendered="#{chatController.conversations.size()>0}"
 									style="background-color:white;  height: 100px; ">
@@ -184,7 +187,8 @@
 												<a4j:outputPanel id="contactPhoto">
 												<a4j:mediaOutput  element="img" cacheable="false" session="true"
 											createContent="#{chatController.paintAvatar}" 
-       									   mimeType="image/jpeg" styleClass="photo"/>
+       									   mimeType="image/jpeg" styleClass="photo" rendered="#{conver.avatar!=null}"/>
+       									   	<h:graphicImage value="images/person.png" rendered="#{conver.avatar==null}" styleClass="photo" width="70"/>
        									   </a4j:outputPanel>
 												</td>
 													<td>
@@ -192,7 +196,7 @@
 													<h:outputText value="ID : #{chatController.subString(30,conver.idName)}" /><BR />											
 													<h:outputText value="STATE : #{conver.state}" rendered="#{conver.online}"/>
 													<h:outputText value="STATE : Offline" rendered="#{!conver.online}" />
-													
+
 													</td>
 													<td style="width: 50%">
 													<h:outputText value="#{conver.status}" />
@@ -211,7 +215,7 @@
 							<rich:panel rendered="#{chatController.conversations.size()>0}"
 									style="background-color:white; border:none " >
 							<a4j:outputPanel id="messageList" rendered="#{chatController.conversations.size()>0}">
-								
+
 
 									<script>
 												var objDiv = document.getElementById("conversation_scroll");
@@ -220,7 +224,7 @@
 												<a4j:outputPanel rendered="#{!chatController.irc}" style="">
 									<div id="conversation_scroll" class="conversation">
 										<div style="padding: 10px;" >
-										
+
 											<table>
 												<a4j:repeat
 													value="#{chatController.currentContact.messagesHistory}"
@@ -228,7 +232,7 @@
 													<tr style="padding: 5px;">
 														<td>
 															<div style="width: 100%">
-															
+
 																<a4j:outputPanel styleClass="concreteMessage"
 																	rendered="#{message.from=='Me'}" style="float:left">
 																	<h:outputText value="#{message.time} #{message.from}: "
@@ -257,7 +261,7 @@
 												</a4j:repeat>
 											</table>
 										</div>
-										
+
 									</div>
 									</a4j:outputPanel>
 									<a4j:outputPanel rendered="#{chatController.irc}">
@@ -289,8 +293,8 @@
 												</table>
 											</a4j:outputPanel>
 							</a4j:outputPanel>
-					
-							
+
+
 							<a4j:outputPanel id="messageinput">
 									<h:inputTextarea
 										value="#{chatController.currentContact.actualMessage}"
@@ -298,28 +302,32 @@
 										rows="3">
 										<rich:focus></rich:focus>
 									</h:inputTextarea>
-
+									
 									<rich:hotKey key="return"
 										onkeydown="#{rich:element('sendButton')}.click()"
 										enabledInInput="true" />
-										<a4j:commandButton value="refresh" render="messageList" /> 
-										<a4j:commandButton id="sendButton" value="send"
+										<table style="width: 150px">
+										<tr>
+										<td  style="width: 22px"><a4j:commandButton value="refresh" render="messageList" styleClass="button" image="icons/refresh.png" style="height: 20px;" /></td> 
+										<td><a4j:commandButton id="sendButton" value="send" styleClass="button" style="height: 20px;"
 								action="#{chatController.currentContact.sendMessage()}"
-								render="messageinput" />
-								<a4j:commandLink value="load history" action="#{chatController.loadHistory()}" />
+								render="messageinput" /></td>
+								<td><a4j:commandLink value="load history" action="#{chatController.loadHistory()}" /></td>
+								</tr>
+								</table>
 									</a4j:outputPanel>
 								</rich:panel>
-	
-						
-						
 
-						
+
+
+
+
 
 						</rich:panel>
 
 
 					</h:form>
-					
+
 					<h:form>
 
 						<rich:panel id="contact_wrapper" styleClass="contactWrapper">
@@ -367,29 +375,31 @@
 
 										</rich:panelMenuItem >
 								  	</a4j:repeat>
-								
+
 								</rich:panelMenu>
 							</rich:panel>
-							<rich:dropDownMenu mode="client" label="state" style="width: 120px;">
-							<rich:menuItem icon="state/available.png" label="available" style="width: 120px;" />	
-							<rich:menuItem icon="state/away.png" label="Away" style="width: 120px; "/>												
-							<rich:menuItem icon="state/dnd.png" label="Do not disturb" style="width: 120px;" />
-																			
-	
-							</rich:dropDownMenu>
-							
-							<h:commandButton id="disconnect" value="disconnect"
-								action="#{chatController.disconnect()}"
-								rendered="#{chatController.connected == true}" type="submit" />
-							<h:commandButton value="Add">
+							<h:panelGrid columns="4" style="margin: 0px auto;">
+							<h:commandButton value="Add" styleClass="button" image="icons/add.png" style="height: 20px;">
 								<rich:componentControl target="popup" operation="show" />
 							</h:commandButton>
-							<a4j:outputPanel id="pushState">
-								<h:outputText style="font-weight: bold; color: RED;" value="ERR"
-									rendered="#{!chatController.pushWorking}" />
-								<h:outputText style="font-weight: bold; color: green;"
-									value="OK" rendered="#{chatController.pushWorking}" />
-							</a4j:outputPanel>
+							<rich:dropDownMenu mode="ajax" style="width: 120px;">
+							<f:facet name="label">
+							<rich:inplaceInput value="#{chatController.status}" defaultLabel="Tyle your state here " />
+							</f:facet>
+							<rich:menuItem icon="state/available.png" label="available" style="width: 100px;" action="#{chatController.changeState('AVAILABLE')}"/>	
+							<rich:menuItem icon="state/away.png" label="Away" style="width: 120px;" action="#{chatController.changeState('AWAY')}"/>												
+							<rich:menuItem icon="state/dnd.png" label="Do not disturb" style="width: 120px;" action="#{chatController.changeState('DND')}"/>
+					
+
+							</rich:dropDownMenu>
+								
+						
+						
+							
+								<h:commandButton id="disconnect" value="disconnect" styleClass="button"
+								action="#{chatController.disconnect()}"
+								rendered="#{chatController.connected == true}" type="submit" image="icons/logout.png" style="height: 20px;" />
+							</h:panelGrid>
 						</rich:panel>
 						<a4j:jsFunction action="#{chatController.exitConversation()}"
 							name="exitConversation" ajaxSingle="true" render="messages">
@@ -399,12 +409,18 @@
 
 					</h:form>
 				</h:panelGrid>
+					<a4j:outputPanel id="pushState">
+								<h:outputText style="font-weight: bold; color: RED;" value="ERR"
+									rendered="#{!chatController.pushWorking}" />
+								<h:outputText style="font-weight: bold; color: green;"
+									value="OK" rendered="#{chatController.pushWorking}" />
+							</a4j:outputPanel>
 			</rich:panel>
 			<h:form>
 				<a4j:poll interval="7000" execute="#{chatController.checkPush()}"
 					render="pushState" />
 			</h:form>
-
+			
 
 		</rich:panel>
 
@@ -416,25 +432,36 @@
 			</f:facet>
 			<f:facet name="controls">
 			<h:form>
-				<h:commandLink  onclick="#{rich:component('popup')}.hide();">
+				<h:commandLink  onclick="#{rich:component('popup')}.hide(); return false;">
                 X
             </h:commandLink>
             </h:form>
 			</f:facet>
 
 			<h:form>
-				<rich:panel id="accounts">
+			<rich:panel id="singedAccounts" header="connected accounts" styleClass="loginPanel">
+			<table>
+						<a4j:repeat value="#{chatController.accounts}" var="account">
+							<tr>
+								<td><h:outputText value="#{account.username}" /></td>
+								<td><h:outputText value="#{account.server}" /></td>
+								<td><h:commandLink
+										action="#{account.disconnect()}"
+										render="accounts">Disconnect</h:commandLink></td>
+							</tr>
+						</a4j:repeat>
+					</table>
+			</rich:panel>
+				<rich:panel id="accounts" header="Stored accounts" styleClass="loginPanel">
 					<table>
 						<a4j:repeat value="#{chatController.storedAccounts}" var="account">
 							<tr>
 								<td><h:outputText value="#{account.userName}" /></td>
 								<td><h:outputText value="#{account.protocol}" /></td>
-								<td><h:commandLink value="Delete"
+								<td><h:commandLink value="Delete and disconnect"
 										action="#{chatController.deleteAccount(account)}"
 										render="accounts" /></td>
-								<td><h:commandLink
-										action="#{chatController.disconnectAccount(account)}"
-										render="accounts">Disconnect</h:commandLink></td>
+								
 							</tr>
 						</a4j:repeat>
 					</table>
@@ -497,22 +524,7 @@
 				</rich:panel>
 			</h:form>
 		</rich:popupPanel>
+
 		
-		<rich:popupPanel id="irccontacts" modal="true" autosized="true"
-			resizeable="false">
-			<f:facet name="header">
-				<h:outputText value="Accounts" />
-			</f:facet>
-			<f:facet name="controls">
-			<h:form>
-				<h:commandLink  onclick="#{rich:component('irccontacts')}.hide();">
-                X
-            </h:commandLink>
-            </h:form>
-			</f:facet>
-			<rich:panel>
-			
-			</rich:panel>
-			</rich:popupPanel>
 	</h:body>
 </f:view>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class-diagram version="1.1.2" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true">  
+  <interface id="1" language="java" name="sk.mattho.portlets.chatPortlet.chat.genericChat.ChatEventsListener" 
+    project="instant-messenger-portlet" 
+    file="/instant-messenger-portlet/src/main/java/sk/mattho/portlets/chatPortlet/chat/genericChat/ChatEventsListener.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="578" y="187"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </interface>  
+  <class id="2" language="java" name="sk.mattho.portlets.chatPortlet.chat.genericChat.ChatInterface" 
+    project="instant-messenger-portlet" 
+    file="/instant-messenger-portlet/src/main/java/sk/mattho/portlets/chatPortlet/chat/genericChat/ChatInterface.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="157" y="313"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="3" language="java" name="sk.mattho.portlets.chatPortlet.chat.genericChat.ChatMessage" 
+    project="instant-messenger-portlet" 
+    file="/instant-messenger-portlet/src/main/java/sk/mattho/portlets/chatPortlet/chat/genericChat/ChatMessage.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="815" y="520"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="false" package="false" protected="false" private="false"/>    
+    </display>  
+  </class>  
+  <class id="4" language="java" name="sk.mattho.portlets.chatPortlet.chat.genericChat.Contact" 
+    project="instant-messenger-portlet" 
+    file="/instant-messenger-portlet/src/main/java/sk/mattho/portlets/chatPortlet/chat/genericChat/Contact.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="839" width="261" x="362" y="312"/>    
+    <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="false"/>    
+    </display>  
+  </class>  
+  <enumeration id="5" language="java" name="sk.mattho.portlets.chatPortlet.chat.genericChat.ContactState" 
+    project="instant-messenger-portlet" 
+    file="/instant-messenger-portlet/src/main/java/sk/mattho/portlets/chatPortlet/chat/genericChat/ContactState.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="811" y="660"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </enumeration>  
+  <class id="6" language="java" name="sk.mattho.portlets.chatPortlet.chat.ChatManager" 
+    project="instant-messenger-portlet" 
+    file="/instant-messenger-portlet/src/main/java/sk/mattho/portlets/chatPortlet/chat/ChatManager.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="915" y="1036"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <association id="7">    
+    <end type="SOURCE" refId="6" navigable="false">      
+      <attribute id="8" name="conversations"/>      
+      <multiplicity id="9" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="4" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="10">    
+    <end type="SOURCE" refId="6" navigable="false">      
+      <attribute id="11" name="friends"/>      
+      <multiplicity id="12" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="4" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="13">    
+    <end type="SOURCE" refId="6" navigable="false">      
+      <attribute id="14" name="accounts"/>      
+      <multiplicity id="15" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="2" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="16">    
+    <end type="SOURCE" refId="4" navigable="false">      
+      <attribute id="17" name="messagesHistory"/>      
+      <multiplicity id="18" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="3" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <realization id="19">    
+    <end type="SOURCE" refId="6"/>    
+    <end type="TARGET" refId="1"/>  
+  </realization>  
+  <association id="20">    
+    <end type="SOURCE" refId="4" navigable="false">      
+      <attribute id="21" name="state"/>      
+      <multiplicity id="22" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="5" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="23">    
+    <end type="SOURCE" refId="4" navigable="false">      
+      <attribute id="24" name="mySession"/>      
+      <multiplicity id="25" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="2" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="26">    
+    <end type="SOURCE" refId="2" navigable="false">      
+      <attribute id="27" name="eventsListeners"/>      
+      <multiplicity id="28" minimum="0" maximum="2147483647">        
+        <position height="15" width="21" x="455" y="270"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="1" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+    accessors="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>

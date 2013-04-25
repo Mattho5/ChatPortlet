@@ -35,24 +35,25 @@ public class XmppChat extends ChatInterface {
 	private XMPPConnection connection;
 	private List<Contact> contacts;
 	private String serviceName;
-	private  RosterListener rosterListener;
+	private RosterListener rosterListener;
 	private ChatManagerListener chatManagerListener;
+	private Roster roster;
 
-	public XmppChat(){
+	public XmppChat() {
 		super();
 		this.init();
 	}
+
 	public String getServiceName() {
 		return serviceName;
 	}
-	
-	public void init(){
-	
-		this.chatManagerListener= new ChatManagerListener() {
+
+	public void init() {
+
+		this.chatManagerListener = new ChatManagerListener() {
 			@Override
 			public void chatCreated(Chat chat, boolean createdLocally) {
-				System.out.println("Incoming chat!!!!"
-						+ chat.getParticipant());
+				System.out.println("Incoming chat!!!!" + chat.getParticipant());
 				XmppContact contact = (XmppContact) findContactByIdName(chat
 						.getParticipant().split("/")[0]);
 				contact.initChat(chat);
@@ -60,165 +61,38 @@ public class XmppChat extends ChatInterface {
 
 			}
 		};
-		
-	this.rosterListener= new RosterListener() {
 
-		@Override
-		public void presenceChanged(Presence presence) {
-			Contact c = findContactByIdName(presence.getFrom().split(
-					"/")[0]);
-			
-			if(c.getAvatar()==null){
-				try {
-					VCard vcard= new VCard();
-					vcard.load(connection,c.getIdName());
-					c.setAvatar(vcard.getAvatar());
-				} catch (XMPPException e) {
-					// TODO Auto-generated catch block
-					//e.printStackTrace();
-					System.out.print("vcard problem");
-				};
-			}
-			if (presence.getType() == Presence.Type.available) {
-				c.setOnline(true);
-				c.setState(ContactState.AVAILABLE);
+		this.rosterListener = new RosterListener() {
 
-			
-			if (presence.getStatus() != "")
-				c.setStatus(presence.getStatus());
+			@Override
+			public void presenceChanged(Presence presence) {
+				System.out.print("presence change");
+				String user = presence.getFrom().split("/")[0];
+				Contact c = findContactByIdName(user);
 
-			switch (presence.getMode()) {
+				presence = roster.getPresence(user);
 
-			case available:
-				c.setState(ContactState.AVAILABLE);
-				break;
-			case away:
-				c.setState(ContactState.AWAY);
-				break;
-			case dnd:
-				c.setState(ContactState.DND);
+				if (c.getAvatar() == null) {
+					try {
+						VCard vcard = new VCard();
+					//	vcard.set
+						vcard.load(connection, c.getIdName());
+						c.setAvatar(vcard.getAvatar());
+					} catch (XMPPException e) {
+						// TODO Auto-generated catch block
+						// //e.printStackTrace();
+						System.out.print("vcard problem");
+					}
+					;
+				}
 
-				break;
-			case chat:
-				c.setState(ContactState.AVAILABLE);
-				break;
-			case xa:
-				c.setState(ContactState.AWAY);
-				break;
-				
-			default:
-				c.setState(ContactState.AVAILABLE);
-			}
-			} else{
-				c.setOnline(false);
-				c.setState(null);
-			}
-
-			notifyContactChange(c);
-		}
-
-		@Override
-		public void entriesUpdated(Collection<String> arg0) {
-			System.out.println("Entry " + arg0 + " was updated");
-		}
-
-		@Override
-		public void entriesDeleted(Collection<String> arg0) {
-			// TODO Auto-generated method stub
-		}
-
-		@Override
-		public void entriesAdded(Collection<String> arg0) {
-			// TODO Auto-generated method stub
-		}
-	};
-		
-	
-	}
-	public void setServiceName(String serviceName) {
-		this.serviceName = serviceName;
-	}
-
-	@Override
-	public boolean connect(String name, String password) {
-		// TODO throw exception for bad login etc.
-		if (this.getServer().contains("facebook")) {
-			SASLAuthentication.registerSASLMechanism("DIGEST-MD5",
-					MySASLDigestMD5Mechanism.class);
-			SASLAuthentication.supportSASLMechanism("DIGEST-MD5", 0);
-		}
-		ConnectionConfiguration connConfig = new ConnectionConfiguration(
-				this.getServer(), this.getPort(), this.getServiceName());
-		connConfig.setSASLAuthenticationEnabled(true);
-		// ("talk.google.com", 5222, "gmail.com");
-		
-		this.connection = new XMPPConnection(connConfig);
-		
-	//	this.connection.DEBUG_ENABLED=true;
-		try {
-			connection.connect();
-
-		//	System.out.println("Connected to " + connection.getHost());
-		} catch (XMPPException ex) {
-			 ex.printStackTrace();
-			System.out.println("Failed to connect to " + connection.getHost());
-
-			return false;
-
-		}
-		try {
-			this.connection.login(name, password);
-			System.out.println("Logged in as " + connection.getUser());
-			this.connection.getRoster().addRosterListener(rosterListener);
-			Presence p = new Presence(Type.available);
-			this.connection.sendPacket(p);
-		//	
-			this.InitContacts();
-			Thread.sleep(2000);
-			this.notifyConnected();
-		} catch (XMPPException ex) {
-			 ex.printStackTrace();
-			System.out.println("Failed to log in as "
-					+ (connection.getUser().split("@"))[0]);
-			System.exit(1);
-			return false;
-		
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
-		return true;
-
-	}
-
-	private void InitContacts() {
-		this.contacts = new ArrayList<Contact>();
-		if (this.connection != null && this.connection.isConnected()) {
-			org.jivesoftware.smack.ChatManager chatManager = connection
-					.getChatManager();
-			chatManager.addChatListener(this.chatManagerListener);
-			
-			Roster roster = connection.getRoster();
-			
-			Collection<RosterEntry> entries = roster.getEntries();
-			for (RosterEntry r : entries) {
-				XmppContact c = new XmppContact(chatManager);
-				c.setIdName(r.getUser());
-				c.setName(r.getName());
-				c.setMySession(this);
-				
-				
-				
-				c.setRosterEntry(r);
-				
-				// r.
-				
-				Presence presence = roster.getPresence(r.getUser());
-				c.setPresenceFrom(presence.getFrom());
-				if (presence.getType() ==Presence.Type.available){
-					
+				if (presence.getType() == Presence.Type.available) {
 					c.setOnline(true);
-					 if(presence.getMode()!=null)
+					 c.setState(ContactState.AVAILABLE);
+
+					if (presence.getStatus() != "")
+						c.setStatus(presence.getStatus());
+
 					switch (presence.getMode()) {
 
 					case available:
@@ -237,14 +111,147 @@ public class XmppChat extends ChatInterface {
 					case xa:
 						c.setState(ContactState.AWAY);
 						break;
-						
+
 					default:
 						c.setState(ContactState.AVAILABLE);
 					}
-					
-				
+				} else {
+					c.setOnline(false);
+					c.setState(null);
 				}
-				else
+
+				notifyContactChange(c);
+			}
+
+			@Override
+			public void entriesUpdated(Collection<String> arg0) {
+				System.out.println("Entry " + arg0 + " was updated");
+			}
+
+			@Override
+			public void entriesDeleted(Collection<String> arg0) {
+				// TODO Auto-generated method stub
+			}
+
+			@Override
+			public void entriesAdded(Collection<String> arg0) {
+				// TODO Auto-generated method stub
+			}
+		};
+
+	}
+
+	public void setServiceName(String serviceName) {
+		this.serviceName = serviceName;
+	}
+
+	@Override
+	public boolean connect(String name, String password) {
+		// TODO throw exception for bad login etc.
+		if (this.getServer().contains("facebook")) {
+			SASLAuthentication.registerSASLMechanism("DIGEST-MD5",
+					MySASLDigestMD5Mechanism.class);
+			SASLAuthentication.supportSASLMechanism("DIGEST-MD5", 0);
+		}
+		ConnectionConfiguration connConfig = new ConnectionConfiguration(
+				this.getServer(), this.getPort(), this.getServiceName());
+		connConfig.setSASLAuthenticationEnabled(true);
+		// ("talk.google.com", 5222, "gmail.com");
+
+		this.connection = new XMPPConnection(connConfig);
+
+		// this.connection.DEBUG_ENABLED=true;
+		try {
+			connection.connect();
+
+			// System.out.println("Connected to " + connection.getHost());
+		} catch (XMPPException ex) {
+			ex.printStackTrace();
+			System.out.println("Failed to connect to " + connection.getHost());
+
+			return false;
+
+		}
+		try {
+			this.connection.login(name, password);
+			System.out.println("Logged in as " + connection.getUser());
+			this.roster = this.connection.getRoster();
+			this.roster.addRosterListener(rosterListener);
+			// Presence p = new Presence(Type.available);
+			// this.connection.sendPacket(p);
+			//
+			this.InitContacts();
+			Thread.sleep(2000);
+
+			this.notifyConnected();
+		} catch (XMPPException ex) {
+			ex.printStackTrace();
+			System.out.println("Failed to log in as "
+					+ (connection.getUser().split("@"))[0]);
+			System.exit(1);
+			return false;
+
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return true;
+
+	}
+
+	private void InitContacts() {
+		this.contacts = new ArrayList<Contact>();
+		if (this.connection != null && this.connection.isConnected()) {
+			org.jivesoftware.smack.ChatManager chatManager = connection
+					.getChatManager();
+			chatManager.addChatListener(this.chatManagerListener);
+
+			Roster roster = connection.getRoster();
+			System.out.println("Roster reading");
+			Collection<RosterEntry> entries = roster.getEntries();
+			for (RosterEntry r : entries) {
+				XmppContact c = new XmppContact(chatManager);
+				c.setIdName(r.getUser());
+				c.setName(r.getName());
+				c.setMySession(this);
+
+				System.out.println(r.getName() + " /");
+
+				c.setRosterEntry(r);
+
+				// r.
+
+				Presence presence = roster.getPresence(r.getUser());
+				c.setPresenceFrom(presence.getFrom());
+				if (presence.getType() == Presence.Type.available) {
+
+					c.setOnline(true);
+					System.out.println(r.getName() + " /online");
+					if (presence.getMode() != null)
+						switch (presence.getMode()) {
+
+						case available:
+							c.setState(ContactState.AVAILABLE);
+							break;
+						case away:
+							c.setState(ContactState.AWAY);
+							break;
+						case dnd:
+							c.setState(ContactState.DND);
+
+							break;
+						case chat:
+							c.setState(ContactState.AVAILABLE);
+							break;
+						case xa:
+							c.setState(ContactState.AWAY);
+							break;
+
+						default:
+							c.setState(ContactState.AVAILABLE);
+						}
+
+				} else
 					c.setOnline(false);
 				this.contacts.add(c);
 			}
@@ -271,13 +278,14 @@ public class XmppChat extends ChatInterface {
 	public void disconnect() {
 		this.contacts.clear();
 		this.connection.getRoster().removeRosterListener(this.rosterListener);
-		this.connection.getChatManager().removeChatListener(this.chatManagerListener);
+		this.connection.getChatManager().removeChatListener(
+				this.chatManagerListener);
 		// this.connection.disconnect(Presence.Type.unavailable);
-		//this.connection.
+		// this.connection.
 		this.connection.disconnect();
 		this.contacts.clear();
-		//thos/this.connection.shutdown();
-		this.connection=null;
+		// thos/this.connection.shutdown();
+		this.connection = null;
 		this.notifyDisconnected();
 
 	}
@@ -286,13 +294,14 @@ public class XmppChat extends ChatInterface {
 	public void preDestroy() {
 		if (this.connection.isConnected())
 			this.disconnect();
-		
-		this.connection=null;
+
+		this.connection = null;
 	}
 
 	@Override
 	public boolean deleteContact() {
-		// TODO Auto-generated method stub
+		// Roster r= this.connection.getRoster();
+		// r.removeEntry(r.getEntry(user))
 		return false;
 	}
 
@@ -321,10 +330,11 @@ public class XmppChat extends ChatInterface {
 		}
 		return null;
 	}
+
 	@Override
 	public void setStatus(ContactState state, String textStatus) {
-		Presence p=new Presence(Type.available);
-		switch(state){
+		Presence p = new Presence(Type.available);
+		switch (state) {
 		case AVAILABLE:
 			p.setMode(org.jivesoftware.smack.packet.Presence.Mode.available);
 			break;
@@ -335,10 +345,11 @@ public class XmppChat extends ChatInterface {
 			p.setMode(org.jivesoftware.smack.packet.Presence.Mode.dnd);
 			break;
 		}
-		p.setStatus(textStatus);
-		//this.connection.
+		if (textStatus.compareTo("") != 0)
+			p.setStatus(textStatus);
+		// this.connection.
 		this.connection.sendPacket(p);
-		
+
 	}
 
 }

@@ -16,10 +16,6 @@ public abstract class ChatInterface implements Serializable {
 	private String username;
 
 	private List<ChatEventsListener> eventsListeners;
-	//TODO implement state 
-	private ContactState myState;
-	//TODO implement Status
-	private String status;
 	
 	public abstract boolean connect(String name, String password); 
 	public abstract List<Contact> getContacts();

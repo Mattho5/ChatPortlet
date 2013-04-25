@@ -13,6 +13,7 @@ import sk.mattho.portlets.chatPortlet.chat.ChatConfigurations;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatEventsListener;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatInterface;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.Contact;
+import sk.mattho.portlets.chatPortlet.chat.genericChat.ContactState;
 import sk.mattho.portlets.chatPortlet.chat.irc.IrcChannel;
 import sk.mattho.portlets.chatPortlet.chat.irc.IrcChat;
 import sk.mattho.portlets.chatPortlet.chat.xmpp.XmppChat;
@@ -89,6 +90,7 @@ public class ChatManager implements ChatEventsListener, Serializable {
 
 	
 
+	
 	public boolean addAccount(String userName, String password, String server,
 			int port, String serviceName,ChatConfigurations con, ChatEventsListener listener) throws Exception {
 		ChatInterface chat;
@@ -129,33 +131,53 @@ public class ChatManager implements ChatEventsListener, Serializable {
 				//TODO adding ircchannel direct into conversations
 			//	this.conversations.addAll(chat.getContacts());
 			}
-		
+			System.out.println("Adding"+chat.getContacts().size()+" contacts");
 			this.friends.addAll(chat.getContacts());
 			return true;
 		}
 		throw new Exception();
 	}
 
+	/**
+	 * Disconnect all connected accounts
+	 */
 	public void disconnect() {
 	//	System
-		for (ChatInterface c : this.accounts) {
+		List<ChatInterface> temp= new ArrayList<ChatInterface>();
+		temp.addAll(accounts);
+		for (ChatInterface c : temp) {
 			System.out.println("Disconnecting");
 			c.disconnect();
 		}
+		temp.clear();
 		this.accounts.clear();
 		this.friends.clear();
 		this.conversations.clear();
 	}
-
+	
+	/**
+	 * This method allows disconnect concrete account
+	 * @param  name of connected account
+	 * @param username of connected account
+	 */
 	public void disconnect(String server, String username) {
-			ChatInterface ch=this.searchAccount(server, username);
+			ChatInterface ch=searchAccount(server, username);
 			if(ch!=null)
 				{ch.disconnect();
 					this.accounts.remove(ch);
 				}
 			
 	}
-
+	
+	//public void disconnect(String account){
+		//ChatInterface ch=searchAccount(server, username)
+	//}
+/**
+ * This method find connected account
+ * @param server name of connected account
+ * @param username of connected account
+ * @return if account is found, method returns founded account, otherwise null
+ */
 	public ChatInterface searchAccount(String server, String username) {
 		for (ChatInterface ch : this.accounts)
 			if (ch.getServer().compareTo(server) == 0
@@ -164,6 +186,11 @@ public class ChatManager implements ChatEventsListener, Serializable {
 		return null;
 	}
 
+	public void setState(String status, ContactState state){
+		for(ChatInterface chat:this.accounts){
+			chat.setStatus(state, status);
+		}
+	}
 	// -----------------------------------------------------------
 	// IMPLEMENTS OF chateventsListener
 	// -----------------------------------------------------------
@@ -212,7 +239,8 @@ public class ChatManager implements ChatEventsListener, Serializable {
 		
 		contacts.clear();
 	//	contacts=null;
-	//	this.accounts.remove(chatInterface);
+		if(this.accounts.contains(chatInterface))
+			this.accounts.remove(chatInterface);
 
 	}
 
@@ -240,12 +268,16 @@ public class ChatManager implements ChatEventsListener, Serializable {
 		return accounts;
 	}
 	public List<Contact> getOnlineFriends(){
+	//	System.out.println("detting contacts");
 		List<Contact> res= new ArrayList<Contact>();
 		for(Contact c:this.friends){
+			
 			if(c instanceof IrcChannel)
 				res.add(c);
-			else if(c.isOnline())
+			else if(c.isOnline()){
+				
 				res.add(c);
+			}
 				
 		}
 		return res;

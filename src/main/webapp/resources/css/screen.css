@@ -13,6 +13,9 @@ font-size:150%;
 Replacing richfaces style
 ===============================================================
 */
+a{
+	 color: #669900;
+}
 .rf-tab-hdr{
 	
 	border:none;
@@ -89,9 +92,7 @@ box-shadow: 2px 2px 2px #A0A0A0 ;
 	background-color:  #F0F0F0  !important;
 	background-image: none !important;
 }
-rf-p {
-	background-color: white;
-}
+
 /*==========================================================*/
 .loginPanel {
 	width: 300px;
@@ -102,6 +103,23 @@ rf-p {
 	-moz-box-shadow: 2px 2px 2px #A0A0A0;
 -webkit-box-shadow: 2px 2px 2px #A0A0A0 ;
 box-shadow: 2px 2px 2px #A0A0A0 ;
+}
+.button{
+	background-image: none !important; 
+	border: none;
+	font-weight:bold;
+	color: grey !important;
+	background-color:  #F0F0F0  !important;
+	border-radius: 4px;
+	-moz-box-shadow: 1px 1px 1px #A0A0A0;
+-webkit-box-shadow: 1px 1px 1px #A0A0A0 ;
+box-shadow: 1px 1px 1px #A0A0A0 ;
+}
+.button:HOVER{
+	-moz-box-shadow: 3px 3px 3px #A0A0A0;
+-webkit-box-shadow: 3px 3px 3px #A0A0A0 ;
+box-shadow: 3px 3px 3px #A0A0A0 ;
+color: black !important;
 }
 .contactWrapper{
 	width:195px;

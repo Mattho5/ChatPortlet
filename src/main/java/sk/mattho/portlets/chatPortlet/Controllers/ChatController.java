@@ -54,6 +54,7 @@ import sk.mattho.portlets.chatPortlet.chat.ChatManager;
 import sk.mattho.portlets.chatPortlet.chat.ChatConfigurations;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatEventsListener;
 import sk.mattho.portlets.chatPortlet.chat.genericChat.ChatInterface;
+import sk.mattho.portlets.chatPortlet.chat.genericChat.ContactState;
 
 import sk.mattho.portlets.chatPortlet.chat.genericChat.Contact;
 import sk.mattho.portlets.chatPortlet.chat.irc.IrcChannel;
@@ -77,6 +78,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 	private String password;
 	private Integer port;
 	private String server;
+	private String status;
 	private PreferencesAccounts storedAccounts;
 	private boolean saveAccount;
 
@@ -107,6 +109,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 		this.password = "";
 		this.service = "";
 		this.protocols = ChatConfigurations.values();
+		this.status="";
 
 		// db.saveDbContact(d);
 		// return "login";
@@ -128,6 +131,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 							a.getPassword(), a.getServer(), a.getPort(),
 							a.getDomain(), a.getProtocol(), this))
 						this.connected = true;
+					this.initContacts();
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -246,25 +250,15 @@ public class ChatController implements Serializable, ChatEventsListener {
 		return this.onlineContacts;
 	}
 
-	/**
-	 * Resets {@link #name} to the default value {@code "World"} and
-	 * {@link #greeting} with the default value {@code "Hello"}.
-	 * 
-	 * @param ae
-	 *            ignored
-	 * @throws IOException
-	 * @throws ValidatorException
-	 * @throws ReadOnlyException
-	 */
-
-	public void connect() throws ReadOnlyException, ValidatorException,
-			IOException {
+	public void connect()  {
 		try {
 			this.connected = this.manager.addAccount(this.username,
 					this.password, this.server, port, this.service,
 					this.selectedProtocol, this);
 			if (this.saveAccount && this.connected)
 				this.addToPreferences();
+			if(this.connected)
+					this.initContacts();
 		} catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage(null,
 					new FacesMessage("Login failed! Check your configuration"));
@@ -299,7 +293,13 @@ public class ChatController implements Serializable, ChatEventsListener {
 	public void setCurrentConversation(String idname) {
 		this.setActualTab(idname);
 	}
-
+	
+	public void changeState(String s){
+		ContactState state= ContactState.valueOf(s);
+		System.out.print("========================>"+state.toString()+ status );
+		this.manager.setState(this.status, state);
+		
+	}
 	public void newConversation(Contact contact) {
 		this.setActualTab(contact.getIdName());
 		this.currentContact = contact;
@@ -334,10 +334,6 @@ public class ChatController implements Serializable, ChatEventsListener {
 			this.actualTab = "";
 		}
 		this.saveHistory(c);
-	}
-
-	public Date getDate() {
-		return new Date();
 	}
 
 	public void saveHistory(Contact c){
@@ -470,6 +466,8 @@ public class ChatController implements Serializable, ChatEventsListener {
 			return inputString;
 	}
 
+	
+	
 	public void paintAvatar(OutputStream out, Object data) {
 		// if (data instanceof MediaData) {
 
@@ -551,7 +549,10 @@ public class ChatController implements Serializable, ChatEventsListener {
 	@Override
 	public void disconnected(ChatInterface chatSession) {
 		//
+		if(this.manager.getAccounts().size()<1)
+			this.connected=false;
 		this.onlineContacts.clear();
+		this.initContacts();
 		this.contactWindowRefresh();
 		this.messageWindowRefresh();
 
@@ -740,5 +741,18 @@ public class ChatController implements Serializable, ChatEventsListener {
 	public String getUserIdentifier() {
 		return userIdentifier;
 	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	
+	public List<ChatInterface> getAccounts(){
+		return this.manager.getAccounts();
+	}
+	
 
 }
