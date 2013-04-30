@@ -378,13 +378,16 @@
 
 								</rich:panelMenu>
 							</rich:panel>
+						
 							<h:panelGrid columns="4" style="margin: 0px auto;">
 							<h:commandButton value="Add" styleClass="button" image="icons/add.png" style="height: 20px;">
 								<rich:componentControl target="popup" operation="show" />
 							</h:commandButton>
 							<rich:dropDownMenu mode="ajax" style="width: 120px;">
 							<f:facet name="label">
-							<rich:inplaceInput value="#{chatController.status}" defaultLabel="Tyle your state here " />
+								<rich:inplaceInput id="status" value="#{chatController.textStatus}" defaultLabel="Type your status here"  >
+							 <f:ajax event="keyup" render="status" execute="@this" />  
+							 </rich:inplaceInput>
 							</f:facet>
 							<rich:menuItem icon="state/available.png" label="available" style="width: 100px;" action="#{chatController.changeState('AVAILABLE')}"/>	
 							<rich:menuItem icon="state/away.png" label="Away" style="width: 120px;" action="#{chatController.changeState('AWAY')}"/>												
@@ -512,12 +515,14 @@
 							</tr>
 						</a4j:outputPanel>
 						<tr>
-							<td>save account <h:selectBooleanCheckbox
+							<td>save account </td><td><h:selectBooleanCheckbox
 									value="#{chatController.saveAccount}" title="Save account"
-									label="Save account" /> <h:commandButton value="add"
-									action="#{chatController.addAccount()}" render="accounts" /></td>
-							<td><h:commandButton value="Close"
-									onclick="#{rich:component('popup')}.hide();return false;" /></td>
+									label="Save account" /> </td> 
+							
+						</tr>
+						<tr><td><h:commandButton value="add"
+									action="#{chatController.addAccount()}" render="accounts" styleClass="button" /> </td>
+						<td></td>
 						</tr>
 					</table>
 					<rich:messages style="color:red" />

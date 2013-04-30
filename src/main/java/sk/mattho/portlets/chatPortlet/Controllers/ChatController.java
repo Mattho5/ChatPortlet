@@ -78,7 +78,8 @@ public class ChatController implements Serializable, ChatEventsListener {
 	private String password;
 	private Integer port;
 	private String server;
-	private String status;
+	private String textStatus;
+	
 	private PreferencesAccounts storedAccounts;
 	private boolean saveAccount;
 
@@ -109,17 +110,14 @@ public class ChatController implements Serializable, ChatEventsListener {
 		this.password = "";
 		this.service = "";
 		this.protocols = ChatConfigurations.values();
-		this.status="";
+		this.textStatus="";
 
 		// db.saveDbContact(d);
 		// return "login";
 
 	}
 
-	public boolean isConnected() {
-
-		return this.connected;
-	}
+	
 
 	public void initFromPreferences() {
 		PreferencesAccounts pr = this.getFromPreferences();
@@ -218,6 +216,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 		if (this.manager.getAccounts().size() < 1)
 			this.connected = false;
 		this.onlineContacts.clear();
+		this.initContacts();
 	}
 
 	public void initContacts() {
@@ -296,8 +295,8 @@ public class ChatController implements Serializable, ChatEventsListener {
 	
 	public void changeState(String s){
 		ContactState state= ContactState.valueOf(s);
-		System.out.print("========================>"+state.toString()+ status );
-		this.manager.setState(this.status, state);
+		System.out.print("========================>"+state.toString()+ textStatus );
+		this.manager.setState(this.textStatus, state);
 		
 	}
 	public void newConversation(Contact contact) {
@@ -341,14 +340,12 @@ public class ChatController implements Serializable, ChatEventsListener {
 			db.saveHistory((XmppContact) c);
 	}
 	public void setActualTab(String actualTab) {
-		// find in conversations
-		// Contact c=null;
 		this.actualTab = actualTab;
 		for (Contact con : this.manager.getConversations()) {
 			if (con.getIdName().compareTo(actualTab) == 0) {
 				this.currentContact = con;
 				this.currentContact.setHasUnreadedMessage(false);
-				// System.out.println("setting actual tab" + con);
+				
 				break;
 			}
 		}
@@ -469,10 +466,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 	
 	
 	public void paintAvatar(OutputStream out, Object data) {
-		// if (data instanceof MediaData) {
-
-		// MediaData paintData = (MediaData) data;
-		// System.out.println(data.getClass());
+		
 		if (currentContact.getAvatar() != null) {
 
 			BufferedImage img;
@@ -515,8 +509,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 
 	@Override
 	public void processIncomingChat(Contact c) {
-		// System.out.println("Incoming chat from: ");
-
+		
 		if (this.manager.getConversations().size() <= 1) {
 			this.currentContact = c;
 			fullConversationWindowsRefersh();
@@ -533,7 +526,7 @@ public class ChatController implements Serializable, ChatEventsListener {
 		else {
 			if (this.manager.getConversations().contains(c))
 				conversationsWindowRefresh();
-			System.out.println("Status changed: " + c.getIdName());
+			//System.out.println("Status changed: " + c.getIdName());
 			
 			contactWindowRefresh();
 		}
@@ -742,17 +735,18 @@ public class ChatController implements Serializable, ChatEventsListener {
 		return userIdentifier;
 	}
 
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-	
 	public List<ChatInterface> getAccounts(){
 		return this.manager.getAccounts();
 	}
-	
+	public String getTextStatus() {
+		return textStatus;
+	}
 
+	public void setTextStatus(String textStatus) {
+		this.textStatus = textStatus;
+	}
+	public boolean isConnected() {
+
+		return this.connected;
+	}
 }

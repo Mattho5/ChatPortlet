@@ -39,13 +39,12 @@ public abstract class ChatInterface implements Serializable {
 	//  OBSERVABLE METHODS
 	//-------------------------------------------------------
 	public void notifyContactChange(Contact c){
-		//System.out.println("Contact changing");
+	
 		for(ChatEventsListener l:this.eventsListeners){
 			l.processContactStateChanged(c);
 		}
 	}
 	public void notifyMessage(Contact c){
-	//	System.out.println("Notifying about message");
 		for(ChatEventsListener l:this.eventsListeners){
 			l.processMessage(c);
 		}

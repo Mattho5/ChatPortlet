@@ -60,8 +60,7 @@ public class XmppContact extends Contact {
 						@Override
 						//is empty because when managed is creating a chat a incomingChatEvent is called and listener is added. This is a bug in this version of Smack.
 						public void processMessage(Chat arg0, Message arg1) {
-					//		System.out.println("Created chat:");
-					//		noticeMessage(arg0, arg1);
+					
 						}
 					});
 		}
@@ -122,8 +121,8 @@ public class XmppContact extends Contact {
 	}
 
 	private void noticeMessage(Chat arg0, Message arg1) {
-		System.out.println("message from " + getIdName() + ":  "
-				+ arg1.getBody());
+		//System.out.println("message from " + getIdName() + ":  "
+			//	+ arg1.getBody());
 		if (arg1.getBody() != null) {
 
 			ChatMessage m = new ChatMessage();

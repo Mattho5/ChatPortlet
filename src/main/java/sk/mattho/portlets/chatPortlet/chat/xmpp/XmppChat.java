@@ -75,6 +75,7 @@ public class XmppChat extends ChatInterface {
 				if (c.getAvatar() == null) {
 					try {
 						VCard vcard = new VCard();
+						//vcard.
 					//	vcard.set
 						vcard.load(connection, c.getIdName());
 						c.setAvatar(vcard.getAvatar());
@@ -156,9 +157,11 @@ public class XmppChat extends ChatInterface {
 		ConnectionConfiguration connConfig = new ConnectionConfiguration(
 				this.getServer(), this.getPort(), this.getServiceName());
 		connConfig.setSASLAuthenticationEnabled(true);
-		// ("talk.google.com", 5222, "gmail.com");
+		connConfig.setRosterLoadedAtLogin(true);
+		
 
 		this.connection = new XMPPConnection(connConfig);
+		//this.connection.
 
 		// this.connection.DEBUG_ENABLED=true;
 		try {
@@ -206,7 +209,7 @@ public class XmppChat extends ChatInterface {
 					.getChatManager();
 			chatManager.addChatListener(this.chatManagerListener);
 
-			Roster roster = connection.getRoster();
+			//Roster roster = connection.getRoster();
 			System.out.println("Roster reading");
 			Collection<RosterEntry> entries = roster.getEntries();
 			for (RosterEntry r : entries) {
@@ -215,7 +218,7 @@ public class XmppChat extends ChatInterface {
 				c.setName(r.getName());
 				c.setMySession(this);
 
-				System.out.println(r.getName() + " /");
+		//		System.out.println(r.getName() + " /");
 
 				c.setRosterEntry(r);
 
