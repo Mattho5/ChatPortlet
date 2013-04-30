@@ -20,20 +20,20 @@ If you find some bugs (and I'm really sure you will ;) ) leave comment or email 
 
 
 User Guide
------------ 
-1. Connecting  
+-------------------------
+1. Connecting <br>
  You need to fill all nessesary fields for connecting. If "Save account" is checked, settings are stored into portlet preferences
 
-2. Communication
+2. Communication <br>
 For instant messaging pick contact from contact list and new converasation is opened. Conversations are saved automatically into database.
 
-3. Presence change
+3. Presence change <br>
 You can change presence and text status. After typing your own status, it has to be confirmed by selecting presence mode.
 
-4. Accounts managing 
+4. Accounts managing  <br>
 For managing connected and stored accounts click on "+" (Add) button. 
 
-5. Folder refresh 
+5. Folder refresh  <br>
 For current folder refresh click on refresh button.
 
 
